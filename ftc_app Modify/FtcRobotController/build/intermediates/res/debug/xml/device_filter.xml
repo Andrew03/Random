@@ -1,0 +1,5 @@
+
+<resources>
+   <usb-device vendor-id="1027" product-id="24577" /> <!-- FT232 Modern Robotics -->
+</resources>
+<!-- From: file:/C:/Users/Andrew/Documents/Robotics/ftc_app%20Modify/FtcRobotController/src/main/res/xml/device_filter.xml -->
