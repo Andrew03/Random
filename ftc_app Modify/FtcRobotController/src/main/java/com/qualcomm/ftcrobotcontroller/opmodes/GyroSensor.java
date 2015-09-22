@@ -13,8 +13,8 @@ import android.hardware.SensorManager;
 public class GyroSensor implements SensorEventListener {
 
     private Sensor gyro;
-    private float rot[];
-    private float initOrientation;
+    private float currentRot[];
+    private float initOrientation[];
     // conversion from nannoseconds to seconds
     private static final float NS2S = 1.0f / 1000000000.0f;
     private final float[] deltaRotationVector = new float[4];
@@ -22,16 +22,24 @@ public class GyroSensor implements SensorEventListener {
     // should be very small, just over 0
     private final float EPSILON = 0.000001f;
 
-    GyroSensor(SensorManager sensorManager) {
+    GyroSensor(SensorManager sensorManager, float[] gravity, float[] geomagnetic) {
         gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        rot = new float[3];
+        currentRot = new float[3];
         sensorManager.registerListener(this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
+        if(!calculateInitOrientation(gravity, geomagnetic)) {
+            // log an error
+        }
     }
 
+    public float[] getCurrentRot() {
+        return currentRot;
+    }
+    
     @Override
     public void onAccuracyChanged(Sensor Sensor, int accuracy) {
 
     }
+    
     @Override
     public void onSensorChanged(SensorEvent event) {
 
@@ -66,10 +74,11 @@ public class GyroSensor implements SensorEventListener {
         timestamp = event.timestamp;
         float[] deltaRotationMatrix = new float[9];
         SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
+        currentRot = multiplyMatrix(currentRot, deltaRotationMatrix);
     }
 
-    private void calculateInitOrientation() {
-        //initOrientation = SensorManager.getRotationMatrix(SensorManager.getRotationMatrix(initialRotationMatrix, null, acceleration, magnetic));
+    private boolean calculateInitOrientation(float[] gravity, float[] geomagnetic) {
+        return getRotationMatrix(currentRot, null, gravity, geomagnetic);
     }
 
     private float[] multiplyMatrix(float[] a, float[] b) {
