@@ -7,7 +7,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 /**
  * Created by Andrew on 10/23/2015.
  */
+
 public class TeleOp extends OpMode {
+
     // all of the motor declarations
     DcMotor M_driveFR, // front right drive motor
             M_driveFL, // front left drive motor
@@ -17,6 +19,7 @@ public class TeleOp extends OpMode {
             M_lift,    // lift motor
             M_hangR,   // right hanging motor
             M_hangL;   // left hanging motor
+
     // all of the servo declarations
     Servo   S_climbersR, // right servo that knocks down climbers
             S_climbersL, // left servo that knocks down climbers
@@ -30,6 +33,7 @@ public class TeleOp extends OpMode {
             S_pickupSL,  // servo on left side of the pickup
             S_hitchR,    // right hitch servo
             S_hitchL;    // left hitch servo
+
     // all of the possible drive modes
     enum DriveModes {
         TANK,
@@ -38,16 +42,21 @@ public class TeleOp extends OpMode {
         THRUST
     }
     DriveModes driveMode;
+
     // the controller object
     Controller controller;
+
     // all of the motor variable declarations & definitions
-    float driveLPower, driveRPower;
-    float pickupPower = 0.9f;
+    float   driveLPower,
+            driveRPower,
+            pickupPower = 0.9f,
+            liftUpPower = 0.9f,
+            liftDownPower = -0.9f;
     boolean isPickup = false;
-    float liftUpPower = 0.9f;
-    float liftDownPower = -0.9f;
+
     @Override
     public void init() {
+
         // all of the motor definitions
         M_driveFR = hardwareMap.dcMotor.get("M_driveFR");
         M_driveFL = hardwareMap.dcMotor.get("M_driveFL");
@@ -58,6 +67,7 @@ public class TeleOp extends OpMode {
         M_hangR = hardwareMap.dcMotor.get("M_hangR");
         M_hangL = hardwareMap.dcMotor.get("M_hangL");
         // all of the servo definitions
+
         S_climbersR = hardwareMap.servo.get("S_climbersR");
         S_climbersL = hardwareMap.servo.get("S_climbersL");
         S_liftR = hardwareMap.servo.get("S_liftR");
@@ -71,42 +81,28 @@ public class TeleOp extends OpMode {
         S_hitchR = hardwareMap.servo.get("S_hitchR");
         S_hitchL = hardwareMap.servo.get("S_hitchL");
 
-
-    }
-
-    @Override
-    public void init_loop() {
-        controller = new Controller();
+        // other definitions
+        controller = new Controller(gamepad1, gamepad2);
         driveMode = DriveModes.TANK;
-    }
 
+        // start threads
+        controller.startThread();
+    }
 
     @Override
     public void loop() {
-        // sends stick values to controller to be updated
-        controller.updateSticks(gamepad1.right_stick_x,
-                                -gamepad1.right_stick_y,
-                                gamepad1.left_stick_x,
-                                -gamepad1.left_stick_y,
-                                gamepad2.right_stick_x,
-                                -gamepad2.right_stick_y,
-                                gamepad2.left_stick_x,
-                                -gamepad2.left_stick_y);
-        // sends trigger values to controller to be updated
-        controller.updateTriggers(  gamepad1.right_trigger,
-                                    gamepad1.left_trigger,
-                                    gamepad2.right_trigger,
-                                    gamepad2.left_trigger);
+
         // decides which drive mode robot is in
-        if(gamepad1.dpad_up) {
+        if(controller.C1_dUp) {
             driveMode = DriveModes.TANK;
-        } else if(gamepad1.dpad_right) {
+        } else if(controller.C1_dRight) {
             driveMode = DriveModes.FPS;
-        } else if(gamepad1.dpad_down) {
+        } else if(controller.C1_dDown) {
             driveMode = DriveModes.ARCADE;
-        } else if(gamepad1.dpad_left) {
+        } else if(controller.C1_dLeft) {
             driveMode = DriveModes.THRUST;
         }
+
         // runs different blocks depending on which drive mode robot is in
         switch(driveMode) {
             // in tank mode
@@ -147,10 +143,10 @@ public class TeleOp extends OpMode {
 
 
         // lift control block
-        if(controller.isTriggerPressed(controller.C1_triggerR)) {
+        if(controller.isC1_triggerR) {
             // runs pickup if controller 1's right trigger is held
             M_lift.setPower(liftUpPower);
-        } else if(controller.isTriggerPressed(controller.C1_triggerL)) {
+        } else if(controller.isC1_triggerL) {
             // runs pickup in reverse if controller 1's left trigger is held
             M_lift.setPower(liftDownPower);
 

@@ -1,64 +1,213 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
-/**
- * Created by Andrew on 10/23/2015.
- */
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.Range;
+
+// Do I want to have this class in a separate file or do I want to just put a private class in the teleop loop?
 
 // stores all the controller variables and methods
 public class Controller {
-    // controller constants
-    private final float C_TOP_THRESHOLD = 0.85f;
-    private final float C_BOTTOM_THRESHOLD = 0.05f;
-    // converted controller stick values
-    public float    C1_stickRx, // controller 1's converted right stick value in the x direction
-                    C1_stickRy, // controller 1's converted right stick value in the y direction
-                    C1_stickLx, // controller 1's converted left stick value in the x direction
-                    C1_stickLy, // controller 1's converted left stick value in the y direction
-                    C2_stickRx, // controller 2's converted right stick value in the x direction
-                    C2_stickRy, // controller 2's converted right stick value in the y direction
-                    C2_stickLx, // controller 2's converted left stick value in the x direction
-                    C2_stickLy; // controller 2's converted left stick value in the y direction
-    public float    C1_triggerR, // controller 1's right trigger value
-                    C1_triggerL, // controller 1's left trigger value
-                    C2_triggerR, // controller 2's right trigger value
-                    C2_triggerL; // controller 2's left trigger value
-    public double   C1_AngleR, // controller 1's right stick angle
-                    C1_AngleL, // controller 1's left stick angle
-                    C2_AngleR, // controller 2's right stick angle
-                    C2_AngleL; // controller 2's left stick angle
 
+    // stores how far sticks are pushed
+    volatile float  C1_stickRx, // controller 1's converted right stick value in the x direction
+            C1_stickRy, // controller 1's converted right stick value in the y direction
+            C1_stickLx, // controller 1's converted left stick value in the x direction
+            C1_stickLy, // controller 1's converted left stick value in the y direction
+            C2_stickRx, // controller 2's converted right stick value in the x direction
+            C2_stickRy, // controller 2's converted right stick value in the y direction
+            C2_stickLx, // controller 2's converted left stick value in the x direction
+            C2_stickLy; // controller 2's converted left stick value in the y direction
 
-    // converts all of the controller sticks into more sensitive values
-    // use a negative value for y axis since controller reads -1 when pushed forward
-    private double convertStick(double controllerValue) {
-        double sigma = controllerValue * Math.PI / 2 / C_TOP_THRESHOLD;
-        return Math.sin(sigma);
+    // stores the angle sticks are pushed
+    volatile double C1_AngleR, // controller 1's right stick angle
+            C1_AngleL, // controller 1's left stick angle
+            C2_AngleR, // controller 2's right stick angle
+            C2_AngleL; // controller 2's left stick angle
+
+    // stores how far triggers are pressed
+    volatile float  C1_triggerR, // controller 1's right trigger value
+            C1_triggerL, // controller 1's left trigger value
+            C2_triggerR, // controller 2's right trigger value
+            C2_triggerL; // controller 2's left trigger value
+
+    // stores if triggers are pressed or not
+    volatile boolean    isC1_triggerR = false,  // controller 1's right trigger pressed or not
+            isC1_triggerL = false,  // controller 1's left trigger pressed or not
+            isC2_triggerR = false,  // controller 2's right trigger pressed or not
+            isC2_triggerL = false;  // controller 2's left trigger pressed or not
+
+    // stores if buttons are pressed or not
+    volatile boolean    C1_A = false,       // controller 1's A button pressed or not
+            C1_B = false,       // controller 1's B button pressed or not
+            C1_X = false,       // controller 1's X button pressed or not
+            C1_Y = false,       // controller 1's Y button pressed or not
+            C1_Back = false,    // controller 1's Back button pressed or not
+            C1_Start = false,   // controller 1's Start button pressed or not
+            C2_A = false,       // controller 2's A button pressed or not
+            C2_B = false,       // controller 2's B button pressed or not
+            C2_X = false,       // controller 2's X button pressed or not
+            C2_Y = false,       // controller 2's Y button pressed or not
+            C2_Back = false,    // controller 2's Back button pressed or not
+            C2_Start = false;   // controller 2's Start button pressed or not
+
+    // stores if d-pad buttons are pressed or not
+    volatile boolean    C1_dUp = false,     // controller 1's d-pad up button pressed or not
+            C1_dRight = false,  // controller 1's d-pad right button pressed or not
+            C1_dDown = false,   // controller 1's d-pad down button pressed or not
+            C1_dLeft = false,   // controller 1's d-pad left button pressed or not
+            C2_dUp = false,     // controller 2's d-pad up button pressed or not
+            C2_dRight = false,  // controller 2's d-pad right button pressed or not
+            C2_dDown = false,   // controller 2's d-pad down button pressed or not
+            C2_dLeft = false;   // controller 2's d-pad left button pressed or not
+
+    // controller thread object
+    ControllerThread controllerThread;
+
+    // constructor, takes in the two controllers
+    public Controller(Gamepad pad1, Gamepad pad2) {
+        // defines the controller thread object, passes in the two controllers
+        controllerThread = new ControllerThread(pad1, pad1);
     }
 
-    // updates the converted controller stick values as long as they are above the bottom threshold
-    public void updateSticks(float C1_stickRx, float C1_stickRy, float C1_stickLx, float C1_stickLy, float C2_stickRx, float C2_stickRy, float C2_stickLx, float C2_stickLy) {
-        this.C1_stickRx = (C1_stickRx > C_BOTTOM_THRESHOLD) ? (float)convertStick(C1_stickRx) : 0.0f;
-        this.C1_stickRy = (C1_stickRy > C_BOTTOM_THRESHOLD) ? (float)convertStick(C1_stickRy) : 0.0f;
-        this.C1_stickLx = (C1_stickLx > C_BOTTOM_THRESHOLD) ? (float)convertStick(C1_stickLx) : 0.0f;
-        this.C1_stickLy = (C1_stickLy > C_BOTTOM_THRESHOLD) ? (float)convertStick(C1_stickLy) : 0.0f;
-        this.C2_stickRx = (C2_stickRx > C_BOTTOM_THRESHOLD) ? (float)convertStick(C2_stickRx) : 0.0f;
-        this.C2_stickRy = (C2_stickRy > C_BOTTOM_THRESHOLD) ? (float)convertStick(C2_stickRy) : 0.0f;
-        this.C2_stickLx = (C2_stickLx > C_BOTTOM_THRESHOLD) ? (float)convertStick(C2_stickLx) : 0.0f;
-        this.C2_stickLy = (C2_stickLy > C_BOTTOM_THRESHOLD) ? (float)convertStick(C2_stickLy) : 0.0f;
-        C1_AngleR = Math.toDegrees(Math.atan(C1_stickRy/C1_stickRx));
-        C1_AngleL = Math.toDegrees(Math.atan(C1_stickLy/C1_stickLx));
-        C2_AngleR = Math.toDegrees(Math.atan(C2_stickRy/C2_stickRx));
-        C2_AngleL = Math.toDegrees(Math.atan(C2_stickLy/C2_stickLx));
+    // updates all the controller values
+    public void startThread() {
+        controllerThread.run();
     }
 
-    public void updateTriggers(float C1_triggerR, float C1_triggerL, float C2_triggerR, float C2_triggerL) {
-        this.C1_triggerR = C1_triggerR;
-        this.C1_triggerL = C1_triggerL;
-        this.C2_triggerR = C2_triggerR;
-        this.C2_triggerL = C2_triggerL;
-    }
+    // controller thread
+    private class ControllerThread extends Thread {
 
-    public boolean isTriggerPressed(float trigger) {
-        return (trigger > 0) ? true : false;
+        // stores how far sticks are pushed
+        volatile float  C1_stickRx, // controller 1's converted right stick value in the x direction
+                C1_stickRy, // controller 1's converted right stick value in the y direction
+                C1_stickLx, // controller 1's converted left stick value in the x direction
+                C1_stickLy, // controller 1's converted left stick value in the y direction
+                C2_stickRx, // controller 2's converted right stick value in the x direction
+                C2_stickRy, // controller 2's converted right stick value in the y direction
+                C2_stickLx, // controller 2's converted left stick value in the x direction
+                C2_stickLy; // controller 2's converted left stick value in the y direction
+
+        // stores the angle sticks are pushed
+        volatile double C1_AngleR, // controller 1's right stick angle
+                C1_AngleL, // controller 1's left stick angle
+                C2_AngleR, // controller 2's right stick angle
+                C2_AngleL; // controller 2's left stick angle
+
+        // stores how far triggers are pressed
+        volatile float  C1_triggerR, // controller 1's right trigger value
+                C1_triggerL, // controller 1's left trigger value
+                C2_triggerR, // controller 2's right trigger value
+                C2_triggerL; // controller 2's left trigger value
+
+        // stores if triggers are pressed or not
+        volatile boolean   isC1_triggerR = false,  // controller 1's right trigger pressed or not
+                isC1_triggerL = false,  // controller 1's left trigger pressed or not
+                isC2_triggerR = false,  // controller 2's right trigger pressed or not
+                isC2_triggerL = false;  // controller 2's left trigger pressed or not
+
+        // stores if buttons are pressed or not
+        volatile boolean    C1_A = false,       // controller 1's A button pressed or not
+                C1_B = false,       // controller 1's B button pressed or not
+                C1_X = false,       // controller 1's X button pressed or not
+                C1_Y = false,       // controller 1's Y button pressed or not
+                C1_Back = false,    // controller 1's Back button pressed or not
+                C1_Start = false,   // controller 1's Start button pressed or not
+                C2_A = false,       // controller 2's A button pressed or not
+                C2_B = false,       // controller 2's B button pressed or not
+                C2_X = false,       // controller 2's X button pressed or not
+                C2_Y = false,       // controller 2's Y button pressed or not
+                C2_Back = false,    // controller 2's Back button pressed or not
+                C2_Start = false;   // controller 2's Start button pressed or not
+
+        // stores if d-pad buttons are pressed or not
+        volatile boolean    C1_dUp = false,     // controller 1's d-pad up button pressed or not
+                C1_dRight = false,  // controller 1's d-pad right button pressed or not
+                C1_dDown = false,   // controller 1's d-pad down button pressed or not
+                C1_dLeft = false,   // controller 1's d-pad left button pressed or not
+                C2_dUp = false,     // controller 2's d-pad up button pressed or not
+                C2_dRight = false,  // controller 2's d-pad right button pressed or not
+                C2_dDown = false,   // controller 2's d-pad down button pressed or not
+                C2_dLeft = false;   // controller 2's d-pad left button pressed or not
+
+        // all of the not shared variables
+        private final float C_TOP_THRESHOLD = 0.85f,    // least value for which value read from motor will be 1.0f
+                C_BOTTOM_THRESHOLD = 0.05f; // greatest value for which value read from motor will be 0.0f
+        // the two controllers
+        private Gamepad pad1,
+                pad2;
+
+        // constructor, defines the two controlleres
+        ControllerThread(Gamepad pad1, Gamepad pad2) {
+            this.pad1 = pad1;
+            this.pad2 = pad2;
+        }
+
+        // converts all of the controller sticks into more sensitive values
+        // use a negative value for y axis since controller reads -1 when pushed forward
+        private float convertStick(float controllerValue) {   return (float) Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_TOP_THRESHOLD), -1.0d, 1.0d); }
+
+        // the main loop function
+        public void run() {
+            try {
+                while (!isInterrupted()) {
+
+                    // finds stick values, converts them and clips them if they are less than -1.0f or more than 1.0f
+                    C1_stickRx = (pad1.right_stick_x > C_BOTTOM_THRESHOLD) ? convertStick(pad1.right_stick_x) : 0.0f;
+                    C1_stickRy = (pad1.right_stick_y > C_BOTTOM_THRESHOLD) ? convertStick(-pad1.right_stick_y) : 0.0f;
+                    C1_stickLx = (pad1.left_stick_x > C_BOTTOM_THRESHOLD) ? convertStick(pad1.left_stick_x) : 0.0f;
+                    C1_stickLy = (pad1.left_stick_y > C_BOTTOM_THRESHOLD) ? convertStick(-pad1.left_stick_y) : 0.0f;
+                    C2_stickRx = (pad2.right_stick_x > C_BOTTOM_THRESHOLD) ? convertStick(pad2.right_stick_x) : 0.0f;
+                    C2_stickRy = (pad2.right_stick_y > C_BOTTOM_THRESHOLD) ? convertStick(-pad2.right_stick_y) : 0.0f;
+                    C2_stickLx = (pad2.left_stick_x > C_BOTTOM_THRESHOLD) ? convertStick(pad2.left_stick_x) : 0.0f;
+                    C2_stickLy = (pad2.left_stick_y > C_BOTTOM_THRESHOLD) ? convertStick(-pad2.left_stick_y) : 0.0f;
+
+                    // finds stick angles
+                    C1_AngleR = Math.toDegrees(Math.atan(pad1.right_stick_y/pad1.right_stick_x));
+                    C1_AngleL = Math.toDegrees(Math.atan(pad1.left_stick_y/pad1.left_stick_x));
+                    C2_AngleR = Math.toDegrees(Math.atan(pad2.right_stick_y/pad2.right_stick_x));
+                    C2_AngleL = Math.toDegrees(Math.atan(pad2.left_stick_y/pad2.left_stick_x));
+
+                    // finds how far triggers are pressed
+                    C1_triggerR = pad1.right_trigger;
+                    C1_triggerL = pad1.left_trigger;
+                    C2_triggerR = pad2.right_trigger;
+                    C2_triggerL = pad2.left_trigger;
+
+                    // finds if triggers are pressed
+                    isC1_triggerR = pad1.right_trigger > 0;
+                    isC1_triggerL = pad1.left_trigger > 0;
+                    isC2_triggerR = pad2.right_trigger > 0;
+                    isC2_triggerL = pad2.left_trigger > 0;
+
+                    // finds if buttons are pressed or not
+                    C1_A = pad1.a;
+                    C1_B = pad1.b;
+                    C1_X = pad1.x;
+                    C1_Y = pad1.y;
+                    C1_Back = pad1.back;
+                    C1_Start = pad1.start;
+                    C2_A = pad2.a;
+                    C2_B = pad2.b;
+                    C2_X = pad2.x;
+                    C2_Y = pad2.y;
+                    C2_Back = pad2.back;
+                    C2_Start = pad2.start;
+
+                    // finds if d-pad buttons are pressed or not
+                    C1_dUp = pad1.dpad_up;
+                    C1_dRight = pad1.dpad_right;
+                    C1_dDown = pad1.dpad_down;
+                    C1_dLeft = pad1.dpad_left;
+                    C2_dUp = pad2.dpad_up;
+                    C2_dRight = pad2.dpad_right;
+                    C2_dDown = pad2.dpad_down;
+                    C2_dLeft = pad2.dpad_left;
+
+                    sleep(50);
+                }
+            }
+            catch (InterruptedException e) {}
+            catch (Throwable e) {}
+        }
     }
 }
