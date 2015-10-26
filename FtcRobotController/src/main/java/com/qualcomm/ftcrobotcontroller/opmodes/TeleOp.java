@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Created by Andrew on 10/23/2015.
  */
 
+// the main teleop opmode we will be using
 public class TeleOp extends OpMode {
 
     // all of the motor declarations
@@ -36,10 +37,10 @@ public class TeleOp extends OpMode {
 
     // all of the possible drive modes
     enum DriveModes {
-        TANK,
-        FPS,
-        ARCADE,
-        THRUST
+        TANK,   // the traditional y axis stick values driving method for ftc
+        FPS,    // driver controls angle and direction from that angle
+        ARCADE, // driver controls solely direction, angle only when robot at rest
+        THRUST  // driver controls angle and power
     }
     DriveModes driveMode;
 
@@ -54,6 +55,7 @@ public class TeleOp extends OpMode {
             liftDownPower = -0.9f;
     boolean isPickup = false;
 
+    // runs once before everything else
     @Override
     public void init() {
 
@@ -66,8 +68,8 @@ public class TeleOp extends OpMode {
         M_lift = hardwareMap.dcMotor.get("M_lift");
         M_hangR = hardwareMap.dcMotor.get("M_hangR");
         M_hangL = hardwareMap.dcMotor.get("M_hangL");
-        // all of the servo definitions
 
+        // all of the servo definitions
         S_climbersR = hardwareMap.servo.get("S_climbersR");
         S_climbersL = hardwareMap.servo.get("S_climbersL");
         S_liftR = hardwareMap.servo.get("S_liftR");
@@ -86,21 +88,22 @@ public class TeleOp extends OpMode {
         driveMode = DriveModes.TANK;
 
         // start threads
-        controller.startThread();
+        controller.startThread();   // the thread that finds all of the controller values
     }
 
+    // the code that runs time and time again
     @Override
     public void loop() {
 
         // decides which drive mode robot is in
         if(controller.C1_dUp) {
-            driveMode = DriveModes.TANK;
+            driveMode = DriveModes.TANK;    // up on dpad of controller 1 sets robot in tank mode
         } else if(controller.C1_dRight) {
-            driveMode = DriveModes.FPS;
+            driveMode = DriveModes.FPS;     // right on dpad of controller 1 sets robot in FPS mode
         } else if(controller.C1_dDown) {
-            driveMode = DriveModes.ARCADE;
+            driveMode = DriveModes.ARCADE;  // down on dpad of controller 1 sets robot in arcade mode
         } else if(controller.C1_dLeft) {
-            driveMode = DriveModes.THRUST;
+            driveMode = DriveModes.THRUST;  // left on dpad of controller 1 sets robot in thrust mode
         }
 
         // runs different blocks depending on which drive mode robot is in
@@ -123,8 +126,9 @@ public class TeleOp extends OpMode {
                 break;
         }
 
-        // pickup control block
-        // toggle, press once to start and press again to deactivate
+        /* pickup control block
+         * toggle, press once to start and press again to deactivate
+         */
         if(!isPickup) {
             if(gamepad1.right_bumper) {
                 // runs pickup if controller 1's right bumper is pressed

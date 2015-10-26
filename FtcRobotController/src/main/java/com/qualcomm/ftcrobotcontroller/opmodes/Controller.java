@@ -10,55 +10,55 @@ public class Controller {
 
     // stores how far sticks are pushed
     volatile float  C1_stickRx, // controller 1's converted right stick value in the x direction
-            C1_stickRy, // controller 1's converted right stick value in the y direction
-            C1_stickLx, // controller 1's converted left stick value in the x direction
-            C1_stickLy, // controller 1's converted left stick value in the y direction
-            C2_stickRx, // controller 2's converted right stick value in the x direction
-            C2_stickRy, // controller 2's converted right stick value in the y direction
-            C2_stickLx, // controller 2's converted left stick value in the x direction
-            C2_stickLy; // controller 2's converted left stick value in the y direction
+                    C1_stickRy, // controller 1's converted right stick value in the y direction
+                    C1_stickLx, // controller 1's converted left stick value in the x direction
+                    C1_stickLy, // controller 1's converted left stick value in the y direction
+                    C2_stickRx, // controller 2's converted right stick value in the x direction
+                    C2_stickRy, // controller 2's converted right stick value in the y direction
+                    C2_stickLx, // controller 2's converted left stick value in the x direction
+                    C2_stickLy; // controller 2's converted left stick value in the y direction
 
     // stores the angle sticks are pushed
     volatile double C1_AngleR, // controller 1's right stick angle
-            C1_AngleL, // controller 1's left stick angle
-            C2_AngleR, // controller 2's right stick angle
-            C2_AngleL; // controller 2's left stick angle
+                    C1_AngleL, // controller 1's left stick angle
+                    C2_AngleR, // controller 2's right stick angle
+                    C2_AngleL; // controller 2's left stick angle
 
     // stores how far triggers are pressed
     volatile float  C1_triggerR, // controller 1's right trigger value
-            C1_triggerL, // controller 1's left trigger value
-            C2_triggerR, // controller 2's right trigger value
-            C2_triggerL; // controller 2's left trigger value
+                    C1_triggerL, // controller 1's left trigger value
+                    C2_triggerR, // controller 2's right trigger value
+                    C2_triggerL; // controller 2's left trigger value
 
     // stores if triggers are pressed or not
     volatile boolean    isC1_triggerR = false,  // controller 1's right trigger pressed or not
-            isC1_triggerL = false,  // controller 1's left trigger pressed or not
-            isC2_triggerR = false,  // controller 2's right trigger pressed or not
-            isC2_triggerL = false;  // controller 2's left trigger pressed or not
+                        isC1_triggerL = false,  // controller 1's left trigger pressed or not
+                        isC2_triggerR = false,  // controller 2's right trigger pressed or not
+                        isC2_triggerL = false;  // controller 2's left trigger pressed or not
 
     // stores if buttons are pressed or not
     volatile boolean    C1_A = false,       // controller 1's A button pressed or not
-            C1_B = false,       // controller 1's B button pressed or not
-            C1_X = false,       // controller 1's X button pressed or not
-            C1_Y = false,       // controller 1's Y button pressed or not
-            C1_Back = false,    // controller 1's Back button pressed or not
-            C1_Start = false,   // controller 1's Start button pressed or not
-            C2_A = false,       // controller 2's A button pressed or not
-            C2_B = false,       // controller 2's B button pressed or not
-            C2_X = false,       // controller 2's X button pressed or not
-            C2_Y = false,       // controller 2's Y button pressed or not
-            C2_Back = false,    // controller 2's Back button pressed or not
-            C2_Start = false;   // controller 2's Start button pressed or not
+                        C1_B = false,       // controller 1's B button pressed or not
+                        C1_X = false,       // controller 1's X button pressed or not
+                        C1_Y = false,       // controller 1's Y button pressed or not
+                        C1_Back = false,    // controller 1's Back button pressed or not
+                        C1_Start = false,   // controller 1's Start button pressed or not
+                        C2_A = false,       // controller 2's A button pressed or not
+                        C2_B = false,       // controller 2's B button pressed or not
+                        C2_X = false,       // controller 2's X button pressed or not
+                        C2_Y = false,       // controller 2's Y button pressed or not
+                        C2_Back = false,    // controller 2's Back button pressed or not
+                        C2_Start = false;   // controller 2's Start button pressed or not
 
     // stores if d-pad buttons are pressed or not
     volatile boolean    C1_dUp = false,     // controller 1's d-pad up button pressed or not
-            C1_dRight = false,  // controller 1's d-pad right button pressed or not
-            C1_dDown = false,   // controller 1's d-pad down button pressed or not
-            C1_dLeft = false,   // controller 1's d-pad left button pressed or not
-            C2_dUp = false,     // controller 2's d-pad up button pressed or not
-            C2_dRight = false,  // controller 2's d-pad right button pressed or not
-            C2_dDown = false,   // controller 2's d-pad down button pressed or not
-            C2_dLeft = false;   // controller 2's d-pad left button pressed or not
+                        C1_dRight = false,  // controller 1's d-pad right button pressed or not
+                        C1_dDown = false,   // controller 1's d-pad down button pressed or not
+                        C1_dLeft = false,   // controller 1's d-pad left button pressed or not
+                        C2_dUp = false,     // controller 2's d-pad up button pressed or not
+                        C2_dRight = false,  // controller 2's d-pad right button pressed or not
+                        C2_dDown = false,   // controller 2's d-pad down button pressed or not
+                        C2_dLeft = false;   // controller 2's d-pad left button pressed or not
 
     // controller thread object
     ControllerThread controllerThread;
@@ -79,45 +79,45 @@ public class Controller {
 
         // stores how far sticks are pushed
         volatile float  C1_stickRx, // controller 1's converted right stick value in the x direction
-                C1_stickRy, // controller 1's converted right stick value in the y direction
-                C1_stickLx, // controller 1's converted left stick value in the x direction
-                C1_stickLy, // controller 1's converted left stick value in the y direction
-                C2_stickRx, // controller 2's converted right stick value in the x direction
-                C2_stickRy, // controller 2's converted right stick value in the y direction
-                C2_stickLx, // controller 2's converted left stick value in the x direction
-                C2_stickLy; // controller 2's converted left stick value in the y direction
+                        C1_stickRy, // controller 1's converted right stick value in the y direction
+                        C1_stickLx, // controller 1's converted left stick value in the x direction
+                        C1_stickLy, // controller 1's converted left stick value in the y direction
+                        C2_stickRx, // controller 2's converted right stick value in the x direction
+                        C2_stickRy, // controller 2's converted right stick value in the y direction
+                        C2_stickLx, // controller 2's converted left stick value in the x direction
+                        C2_stickLy; // controller 2's converted left stick value in the y direction
 
         // stores the angle sticks are pushed
         volatile double C1_AngleR, // controller 1's right stick angle
-                C1_AngleL, // controller 1's left stick angle
-                C2_AngleR, // controller 2's right stick angle
-                C2_AngleL; // controller 2's left stick angle
+                        C1_AngleL, // controller 1's left stick angle
+                        C2_AngleR, // controller 2's right stick angle
+                        C2_AngleL; // controller 2's left stick angle
 
         // stores how far triggers are pressed
         volatile float  C1_triggerR, // controller 1's right trigger value
-                C1_triggerL, // controller 1's left trigger value
-                C2_triggerR, // controller 2's right trigger value
-                C2_triggerL; // controller 2's left trigger value
+                        C1_triggerL, // controller 1's left trigger value
+                        C2_triggerR, // controller 2's right trigger value
+                        C2_triggerL; // controller 2's left trigger value
 
         // stores if triggers are pressed or not
-        volatile boolean   isC1_triggerR = false,  // controller 1's right trigger pressed or not
-                isC1_triggerL = false,  // controller 1's left trigger pressed or not
-                isC2_triggerR = false,  // controller 2's right trigger pressed or not
-                isC2_triggerL = false;  // controller 2's left trigger pressed or not
+        volatile boolean    isC1_triggerR = false,  // controller 1's right trigger pressed or not
+                            isC1_triggerL = false,  // controller 1's left trigger pressed or not
+                            isC2_triggerR = false,  // controller 2's right trigger pressed or not
+                            isC2_triggerL = false;  // controller 2's left trigger pressed or not
 
         // stores if buttons are pressed or not
         volatile boolean    C1_A = false,       // controller 1's A button pressed or not
-                C1_B = false,       // controller 1's B button pressed or not
-                C1_X = false,       // controller 1's X button pressed or not
-                C1_Y = false,       // controller 1's Y button pressed or not
-                C1_Back = false,    // controller 1's Back button pressed or not
-                C1_Start = false,   // controller 1's Start button pressed or not
-                C2_A = false,       // controller 2's A button pressed or not
-                C2_B = false,       // controller 2's B button pressed or not
-                C2_X = false,       // controller 2's X button pressed or not
-                C2_Y = false,       // controller 2's Y button pressed or not
-                C2_Back = false,    // controller 2's Back button pressed or not
-                C2_Start = false;   // controller 2's Start button pressed or not
+                            C1_B = false,       // controller 1's B button pressed or not
+                            C1_X = false,       // controller 1's X button pressed or not
+                            C1_Y = false,       // controller 1's Y button pressed or not
+                            C1_Back = false,    // controller 1's Back button pressed or not
+                            C1_Start = false,   // controller 1's Start button pressed or not
+                            C2_A = false,       // controller 2's A button pressed or not
+                            C2_B = false,       // controller 2's B button pressed or not
+                            C2_X = false,       // controller 2's X button pressed or not
+                            C2_Y = false,       // controller 2's Y button pressed or not
+                            C2_Back = false,    // controller 2's Back button pressed or not
+                            C2_Start = false;   // controller 2's Start button pressed or not
 
         // stores if d-pad buttons are pressed or not
         volatile boolean    C1_dUp = false,     // controller 1's d-pad up button pressed or not
@@ -130,8 +130,10 @@ public class Controller {
                 C2_dLeft = false;   // controller 2's d-pad left button pressed or not
 
         // all of the not shared variables
-        private final float C_TOP_THRESHOLD = 0.85f,    // least value for which value read from motor will be 1.0f
-                C_BOTTOM_THRESHOLD = 0.05f; // greatest value for which value read from motor will be 0.0f
+        private final float C_STICK_TOP_THRESHOLD = 0.85f,      // least value for which stick value read from motor will be 1.0f
+                            C_STICK_BOTTOM_THRESHOLD = 0.05f,   // greatest value for which stick value read from motor will be 0.0f
+                            C_DPAD_BOTTOM_THRESHOLD = 0.1f;      // greatest value for which dpad will give no value
+
         // the two controllers
         private Gamepad pad1,
                 pad2;
@@ -140,26 +142,29 @@ public class Controller {
         ControllerThread(Gamepad pad1, Gamepad pad2) {
             this.pad1 = pad1;
             this.pad2 = pad2;
+            // set deadzones
+            pad1.setJoystickDeadzone(C_STICK_BOTTOM_THRESHOLD);
+            pad2.setJoystickDeadzone(C_STICK_BOTTOM_THRESHOLD);
         }
 
         // converts all of the controller sticks into more sensitive values
         // use a negative value for y axis since controller reads -1 when pushed forward
-        private float convertStick(float controllerValue) {   return (float) Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_TOP_THRESHOLD), -1.0d, 1.0d); }
+        private float convertStick(float controllerValue) {   return (float) Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD), -1.0d, 1.0d); }
 
         // the main loop function
         public void run() {
             try {
                 while (!isInterrupted()) {
 
-                    // finds stick values, converts them and clips them if they are less than -1.0f or more than 1.0f
-                    C1_stickRx = (pad1.right_stick_x > C_BOTTOM_THRESHOLD) ? convertStick(pad1.right_stick_x) : 0.0f;
-                    C1_stickRy = (pad1.right_stick_y > C_BOTTOM_THRESHOLD) ? convertStick(-pad1.right_stick_y) : 0.0f;
-                    C1_stickLx = (pad1.left_stick_x > C_BOTTOM_THRESHOLD) ? convertStick(pad1.left_stick_x) : 0.0f;
-                    C1_stickLy = (pad1.left_stick_y > C_BOTTOM_THRESHOLD) ? convertStick(-pad1.left_stick_y) : 0.0f;
-                    C2_stickRx = (pad2.right_stick_x > C_BOTTOM_THRESHOLD) ? convertStick(pad2.right_stick_x) : 0.0f;
-                    C2_stickRy = (pad2.right_stick_y > C_BOTTOM_THRESHOLD) ? convertStick(-pad2.right_stick_y) : 0.0f;
-                    C2_stickLx = (pad2.left_stick_x > C_BOTTOM_THRESHOLD) ? convertStick(pad2.left_stick_x) : 0.0f;
-                    C2_stickLy = (pad2.left_stick_y > C_BOTTOM_THRESHOLD) ? convertStick(-pad2.left_stick_y) : 0.0f;
+                    // finds stick values using the convert function
+                    C1_stickRx = convertStick(pad1.right_stick_x);
+                    C1_stickRy = convertStick(-pad1.right_stick_y);
+                    C1_stickLx = convertStick(pad1.left_stick_x);
+                    C1_stickLy = convertStick(-pad1.left_stick_y);
+                    C2_stickRx = convertStick(pad2.right_stick_x);
+                    C2_stickRy = convertStick(-pad2.right_stick_y);
+                    C2_stickLx = convertStick(pad2.left_stick_x);
+                    C2_stickLy = convertStick(-pad2.left_stick_y);
 
                     // finds stick angles
                     C1_AngleR = Math.toDegrees(Math.atan(pad1.right_stick_y/pad1.right_stick_x));
