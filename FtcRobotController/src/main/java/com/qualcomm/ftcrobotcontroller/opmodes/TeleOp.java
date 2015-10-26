@@ -16,13 +16,13 @@ public class TeleOp extends OpMode {
             M_driveFL, // front left drive motor
             M_driveBR, // back right drive motor
             M_driveBL, // back left drive motor
-            M_pickup,  // pickup motor
-            M_lift,    // lift motor
-            M_hangR,   // right hanging motor
-            M_hangL;   // left hanging motor
+            M_pickup;  // pickup motor
+            //M_lift,    // lift motor
+            //M_hangR,   // right hanging motor
+            //M_hangL;   // left hanging motor
 
     // all of the servo declarations
-    Servo   S_climbersR, // right servo that knocks down climbers
+    /*Servo   S_climbersR, // right servo that knocks down climbers
             S_climbersL, // left servo that knocks down climbers
             S_liftR,     // right servo that supports lift
             S_liftL,     // left servo that supports lift
@@ -34,7 +34,7 @@ public class TeleOp extends OpMode {
             S_pickupSL,  // servo on left side of the pickup
             S_hitchR,    // right hitch servo
             S_hitchL;    // left hitch servo
-
+*/
     // all of the possible drive modes
     enum DriveModes {
         TANK,   // the traditional y axis stick values driving method for ftc
@@ -65,12 +65,12 @@ public class TeleOp extends OpMode {
         M_driveBR = hardwareMap.dcMotor.get("M_driveBR");
         M_driveBL = hardwareMap.dcMotor.get("M_driveBL");
         M_pickup = hardwareMap.dcMotor.get("M_pickup");
-        M_lift = hardwareMap.dcMotor.get("M_lift");
+        /*M_lift = hardwareMap.dcMotor.get("M_lift");
         M_hangR = hardwareMap.dcMotor.get("M_hangR");
-        M_hangL = hardwareMap.dcMotor.get("M_hangL");
+        M_hangL = hardwareMap.dcMotor.get("M_hangL");*/
 
         // all of the servo definitions
-        S_climbersR = hardwareMap.servo.get("S_climbersR");
+        /*S_climbersR = hardwareMap.servo.get("S_climbersR");
         S_climbersL = hardwareMap.servo.get("S_climbersL");
         S_liftR = hardwareMap.servo.get("S_liftR");
         S_liftL = hardwareMap.servo.get("S_liftL");
@@ -81,7 +81,7 @@ public class TeleOp extends OpMode {
         S_pickupSR = hardwareMap.servo.get("S_pickupSR");
         S_pickupSL = hardwareMap.servo.get("S_pickupSL");
         S_hitchR = hardwareMap.servo.get("S_hitchR");
-        S_hitchL = hardwareMap.servo.get("S_hitchL");
+        S_hitchL = hardwareMap.servo.get("S_hitchL");*/
 
         // other definitions
         controller = new Controller(gamepad1, gamepad2);
@@ -149,15 +149,18 @@ public class TeleOp extends OpMode {
         // lift control block
         if(controller.isC1_triggerR) {
             // runs pickup if controller 1's right trigger is held
-            M_lift.setPower(liftUpPower);
+            //M_lift.setPower(liftUpPower);
         } else if(controller.isC1_triggerL) {
             // runs pickup in reverse if controller 1's left trigger is held
-            M_lift.setPower(liftDownPower);
+            //M_lift.setPower(liftDownPower);
 
         } else {
             // stops pickup if neither trigger is pressed
             M_pickup.setPower(0.0f);
         }
+
+        driveRPower = gamepad1.right_stick_y;
+        driveLPower = gamepad1.left_stick_y;
 
         // drive power block
         M_driveFR.setPower(driveRPower);
@@ -165,5 +168,9 @@ public class TeleOp extends OpMode {
         M_driveBR.setPower(driveRPower);
         M_driveBL.setPower(driveLPower);
 
+        telemetry.addData("left", "left:  " + String.format("%.2f", controller.C1_stickLy));
+        telemetry.addData("left", "left:  " + String.format("%.2f", driveRPower));
+        telemetry.addData("right", "right:  " + String.format("%.2f", controller.C1_stickRy));
+        telemetry.addData("right", "right:  " + String.format("%.2f", driveLPower));
     }
 }
