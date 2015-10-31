@@ -2,7 +2,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 /**
  * Created by Andrew on 10/23/2015.
@@ -11,159 +11,106 @@ import com.qualcomm.robotcore.hardware.Servo;
 // the main teleop opmode we will be using
 public class TeleOp extends OpMode {
 
-    // all of the motor declarations
+    public TeleOp() {
+
+    }
     DcMotor M_driveFR, // front right drive motor
             M_driveFL, // front left drive motor
             M_driveBR, // back right drive motor
             M_driveBL, // back left drive motor
-            M_pickup,  // pickup motor
-            M_lift,    // lift motor
-            M_hangR,   // right hanging motor
-            M_hangL;   // left hanging motor
+            M_pickup;  // pickup motor
+    float   driveRPower = 0.0f,
+            driveLPower = 0.0f,
+            pickupPower = 0.0f;
+    boolean isPickup = false,
+            isPickupReversed = false;
+    ControllerThread R_controllerThread;
+    Thread T_controllerThread;
 
-    // all of the servo declarations
-    Servo   S_climbersR, // right servo that knocks down climbers
-            S_climbersL, // left servo that knocks down climbers
-            S_liftR,     // right servo that supports lift
-            S_liftL,     // left servo that supports lift
-            S_basketR,   // right servo on the basket
-            S_basketL,   // left servo on the basket
-            S_pickupFR,  // front right servo of the pickup
-            S_pickupFL,  // front left servo of the pickup
-            S_pickupSR,  // servo on right side of the pickup
-            S_pickupSL,  // servo on left side of the pickup
-            S_hitchR,    // right hitch servo
-            S_hitchL;    // left hitch servo
-
-    // all of the possible drive modes
-    enum DriveModes {
-        TANK,   // the traditional y axis stick values driving method for ftc
-        FPS,    // driver controls angle and direction from that angle
-        ARCADE, // driver controls solely direction, angle only when robot at rest
-        THRUST  // driver controls angle and power
-    }
-    DriveModes driveMode;
-
-    // the controller object
-    Controller controller;
-
-    // all of the motor variable declarations & definitions
-    float   driveLPower,
-            driveRPower,
-            pickupPower = 0.9f,
-            liftUpPower = 0.9f,
-            liftDownPower = -0.9f;
-    boolean isPickup = false;
-
-    // runs once before everything else
     @Override
     public void init() {
-
-        // all of the motor definitions
         M_driveFR = hardwareMap.dcMotor.get("M_driveFR");
         M_driveFL = hardwareMap.dcMotor.get("M_driveFL");
         M_driveBR = hardwareMap.dcMotor.get("M_driveBR");
         M_driveBL = hardwareMap.dcMotor.get("M_driveBL");
         M_pickup = hardwareMap.dcMotor.get("M_pickup");
-        M_lift = hardwareMap.dcMotor.get("M_lift");
-        M_hangR = hardwareMap.dcMotor.get("M_hangR");
-        M_hangL = hardwareMap.dcMotor.get("M_hangL");
+        R_controllerThread = new ControllerThread();
+        T_controllerThread = new Thread(R_controllerThread);
 
-        // all of the servo definitions
-        S_climbersR = hardwareMap.servo.get("S_climbersR");
-        S_climbersL = hardwareMap.servo.get("S_climbersL");
-        S_liftR = hardwareMap.servo.get("S_liftR");
-        S_liftL = hardwareMap.servo.get("S_liftL");
-        S_basketR = hardwareMap.servo.get("S_basketR");
-        S_basketL = hardwareMap.servo.get("S_basketL");
-        S_pickupFR = hardwareMap.servo.get("S_pickupFR");
-        S_pickupFL = hardwareMap.servo.get("S_pickupFL");
-        S_pickupSR = hardwareMap.servo.get("S_pickupSR");
-        S_pickupSL = hardwareMap.servo.get("S_pickupSL");
-        S_hitchR = hardwareMap.servo.get("S_hitchR");
-        S_hitchL = hardwareMap.servo.get("S_hitchL");
-
-        // other definitions
-        controller = new Controller(gamepad1, gamepad2);
-        driveMode = DriveModes.TANK;
-
-        // start threads
-        controller.startThread();   // the thread that finds all of the controller values
     }
 
-    // the code that runs time and time again
+    @Override
+    public void start() {
+        //controller.startThread();
+        T_controllerThread.start();
+    }
+
     @Override
     public void loop() {
-
-        // decides which drive mode robot is in
-        if(controller.C1_dUp) {
-            driveMode = DriveModes.TANK;    // up on dpad of controller 1 sets robot in tank mode
-        } else if(controller.C1_dRight) {
-            driveMode = DriveModes.FPS;     // right on dpad of controller 1 sets robot in FPS mode
-        } else if(controller.C1_dDown) {
-            driveMode = DriveModes.ARCADE;  // down on dpad of controller 1 sets robot in arcade mode
-        } else if(controller.C1_dLeft) {
-            driveMode = DriveModes.THRUST;  // left on dpad of controller 1 sets robot in thrust mode
-        }
-
-        // runs different blocks depending on which drive mode robot is in
-        switch(driveMode) {
-            // in tank mode
-            case TANK:
-                driveRPower = controller.C1_stickRy;
-                driveLPower = controller.C1_stickLy;
-                break;
-            // in fps mode
-            case FPS:
-                break;
-            // in arcade mode
-            case ARCADE:
-                break;
-            // in thrust mode
-            case THRUST:
-                break;
-            default:
-                break;
-        }
-
-        /* pickup control block
-         * toggle, press once to start and press again to deactivate
-         */
-        if(!isPickup) {
-            if(gamepad1.right_bumper) {
-                // runs pickup if controller 1's right bumper is pressed
-                M_pickup.setPower(pickupPower);
-                isPickup = true;
-            } else if(gamepad2.left_bumper) {
-                // runs pickup in reverse if controller 1's left bumper is pressed
-                M_pickup.setPower(-pickupPower);
-                isPickup = true;
-            }
-        } else if(gamepad1.right_bumper || gamepad1.left_bumper) {
-            // stops pickup if either of controller 1's bumpers are pressed while pickup is running
-            M_pickup.setPower(0.0f);
-            isPickup = false;
-        }
-
-
-        // lift control block
-        if(controller.isC1_triggerR) {
-            // runs pickup if controller 1's right trigger is held
-            M_lift.setPower(liftUpPower);
-        } else if(controller.isC1_triggerL) {
-            // runs pickup in reverse if controller 1's left trigger is held
-            M_lift.setPower(liftDownPower);
-
-        } else {
-            // stops pickup if neither trigger is pressed
-            M_pickup.setPower(0.0f);
-        }
-
-        // drive power block
+        //driveRPower = controller.C1_stickRy;
+        //driveLPower = controller.C1_stickLy;
         M_driveFR.setPower(driveRPower);
         M_driveFL.setPower(driveLPower);
         M_driveBR.setPower(driveRPower);
         M_driveBL.setPower(driveLPower);
+        if(Math.abs(pickupPower) > 0.0f) {
+            isPickup = true;
+        } else {
+            isPickup = false;
+        }
+        M_pickup.setPower(pickupPower);
+        telemetry.addData("Text", "*** Robot Data***");
 
+        telemetry.addData("R Power", "R Power: " + String.format("%.2f", driveRPower));
+        telemetry.addData("L Power", "R Power: " + String.format("%.2f", driveLPower));
+    }
+
+    @Override
+    public void stop() {
+        T_controllerThread.interrupt();
+    }
+
+    private class ControllerThread implements Runnable {
+        private final float C_STICK_TOP_THRESHOLD = 0.85f,      // least value for which stick value read from motor will be 1.0f
+                C_STICK_BOTTOM_THRESHOLD = 0.05f,   // greatest value for which stick value read from motor will be 0.0f
+                PICKUP_POWER = 0.9f;
+
+        ControllerThread() {
+            gamepad1.setJoystickDeadzone(C_STICK_BOTTOM_THRESHOLD);
+            gamepad2.setJoystickDeadzone(C_STICK_BOTTOM_THRESHOLD);
+        }
+
+        // converts all of the controller sticks into more sensitive values
+        // use a negative value for y axis since controller reads -1 when pushed forward
+        private float convertStick(float controllerValue) {   return (float) Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD), -1.0d, 1.0d); }
+
+        // the main loop function
+        public void run() {
+            try {
+                while(!Thread.currentThread().isInterrupted()) {
+                    driveRPower = convertStick(-gamepad1.right_stick_y);
+                    driveLPower = convertStick(-gamepad1.left_stick_y);
+                    if(!isPickup)
+                        if(gamepad1.right_bumper) {
+                            pickupPower = PICKUP_POWER;
+                        } else if(gamepad1.left_bumper) {
+                            pickupPower = -PICKUP_POWER;
+                        } else {
+                            pickupPower = 0.0f;
+                        }
+                    else {
+                        if(gamepad1.right_bumper || gamepad1.left_bumper) {
+                            pickupPower = 0.0f;
+                        }
+                    }
+                    telemetry.addData("Thread is running", "Thread is running");
+                    Thread.sleep(10);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
     }
 }
+
