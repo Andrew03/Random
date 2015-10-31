@@ -26,6 +26,33 @@ public class TeleOp extends OpMode {
             isPickupReversed = false;
     ControllerThread R_controllerThread;
     Thread T_controllerThread;
+            //M_lift,    // lift motor
+            //M_hangR,   // right hanging motor
+            //M_hangL;   // left hanging motor
+
+    // all of the servo declarations
+    /*Servo   S_climbersR, // right servo that knocks down climbers
+            S_climbersL, // left servo that knocks down climbers
+            S_liftR,     // right servo that supports lift
+            S_liftL,     // left servo that supports lift
+            S_basketR,   // right servo on the basket
+            S_basketL,   // left servo on the basket
+            S_pickupFR,  // front right servo of the pickup
+            S_pickupFL,  // front left servo of the pickup
+            S_pickupSR,  // servo on right side of the pickup
+            S_pickupSL,  // servo on left side of the pickup
+            S_hitchR,    // right hitch servo
+            S_hitchL;    // left hitch servo
+*/
+    // all of the possible drive modes
+    enum DriveModes {
+        TANK,   // the traditional y axis stick values driving method for ftc
+        FPS,    // driver controls angle and direction from that angle
+        ARCADE, // driver controls solely direction, angle only when robot at rest
+        THRUST  // driver controls angle and power
+    }
+    DriveModes driveMode;
+
 
     @Override
     public void init() {
@@ -36,6 +63,26 @@ public class TeleOp extends OpMode {
         M_pickup = hardwareMap.dcMotor.get("M_pickup");
         R_controllerThread = new ControllerThread();
         T_controllerThread = new Thread(R_controllerThread);
+        /*M_lift = hardwareMap.dcMotor.get("M_lift");
+        M_hangR = hardwareMap.dcMotor.get("M_hangR");
+        M_hangL = hardwareMap.dcMotor.get("M_hangL");*/
+
+        // all of the servo definitions
+        /*S_climbersR = hardwareMap.servo.get("S_climbersR");
+        S_climbersL = hardwareMap.servo.get("S_climbersL");
+        S_liftR = hardwareMap.servo.get("S_liftR");
+        S_liftL = hardwareMap.servo.get("S_liftL");
+        S_basketR = hardwareMap.servo.get("S_basketR");
+        S_basketL = hardwareMap.servo.get("S_basketL");
+        S_pickupFR = hardwareMap.servo.get("S_pickupFR");
+        S_pickupFL = hardwareMap.servo.get("S_pickupFL");
+        S_pickupSR = hardwareMap.servo.get("S_pickupSR");
+        S_pickupSL = hardwareMap.servo.get("S_pickupSL");
+        S_hitchR = hardwareMap.servo.get("S_hitchR");
+        S_hitchL = hardwareMap.servo.get("S_hitchL");*/
+
+        // other definitions
+        driveMode = DriveModes.TANK;
 
     }
 
@@ -75,11 +122,6 @@ public class TeleOp extends OpMode {
                 C_STICK_BOTTOM_THRESHOLD = 0.05f,   // greatest value for which stick value read from motor will be 0.0f
                 PICKUP_POWER = 0.9f;
 
-        ControllerThread() {
-            gamepad1.setJoystickDeadzone(C_STICK_BOTTOM_THRESHOLD);
-            gamepad2.setJoystickDeadzone(C_STICK_BOTTOM_THRESHOLD);
-        }
-
         // converts all of the controller sticks into more sensitive values
         // use a negative value for y axis since controller reads -1 when pushed forward
         private float convertStick(float controllerValue) {   return (float) Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD), -1.0d, 1.0d); }
@@ -111,6 +153,7 @@ public class TeleOp extends OpMode {
                 return;
             }
         }
+
     }
 }
 
