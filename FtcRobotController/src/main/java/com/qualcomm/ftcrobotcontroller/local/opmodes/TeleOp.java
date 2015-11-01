@@ -1,4 +1,4 @@
-package com.qualcomm.ftcrobotcontroller.opmodes;
+package com.qualcomm.ftcrobotcontroller.local.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.util.Range;
 /**
  * Created by Andrew on 10/23/2015.
  */
+
+// 1120 pulses per rev
 
 // the main teleop opmode we will be using
 public class TeleOp extends OpMode {
@@ -19,17 +21,9 @@ public class TeleOp extends OpMode {
             M_driveBR, // back right drive motor
             M_driveBL, // back left drive motor
             M_pickup;  // pickup motor
-    float   driveRPower = 0.0f,
-            driveLPower = 0.0f,
-            pickupPower = 0.0f;
-    boolean isPickup = false,
-            isPickupReversed = false;
-    ControllerThread R_controllerThread;
-    Thread T_controllerThread;
             //M_lift,    // lift motor
             //M_hangR,   // right hanging motor
             //M_hangL;   // left hanging motor
-
     // all of the servo declarations
     /*Servo   S_climbersR, // right servo that knocks down climbers
             S_climbersL, // left servo that knocks down climbers
@@ -43,7 +37,15 @@ public class TeleOp extends OpMode {
             S_pickupSL,  // servo on left side of the pickup
             S_hitchR,    // right hitch servo
             S_hitchL;    // left hitch servo
-*/
+            */
+    float   driveRPower = 0.0f,
+            driveLPower = 0.0f,
+            pickupPower = 0.0f;
+    boolean isPickup = false;
+    ControllerThread R_controllerThread;
+    Thread T_controllerThread;
+
+    final float STOP = 0.0f;
     // all of the possible drive modes
     enum DriveModes {
         TANK,   // the traditional y axis stick values driving method for ftc
@@ -61,14 +63,12 @@ public class TeleOp extends OpMode {
         M_driveBR = hardwareMap.dcMotor.get("M_driveBR");
         M_driveBL = hardwareMap.dcMotor.get("M_driveBL");
         M_pickup = hardwareMap.dcMotor.get("M_pickup");
-        R_controllerThread = new ControllerThread();
-        T_controllerThread = new Thread(R_controllerThread);
         /*M_lift = hardwareMap.dcMotor.get("M_lift");
         M_hangR = hardwareMap.dcMotor.get("M_hangR");
-        M_hangL = hardwareMap.dcMotor.get("M_hangL");*/
+        M_hangL = hardwareMap.dcMotor.get("M_hangL");
 
         // all of the servo definitions
-        /*S_climbersR = hardwareMap.servo.get("S_climbersR");
+        S_climbersR = hardwareMap.servo.get("S_climbersR");
         S_climbersL = hardwareMap.servo.get("S_climbersL");
         S_liftR = hardwareMap.servo.get("S_liftR");
         S_liftL = hardwareMap.servo.get("S_liftL");
@@ -81,6 +81,11 @@ public class TeleOp extends OpMode {
         S_hitchR = hardwareMap.servo.get("S_hitchR");
         S_hitchL = hardwareMap.servo.get("S_hitchL");*/
 
+        M_driveFR.setDirection(DcMotor.Direction.REVERSE);
+        M_driveBR.setDirection(DcMotor.Direction.REVERSE);
+
+        R_controllerThread = new ControllerThread();
+        T_controllerThread = new Thread(R_controllerThread, "R_controllerThread");
         // other definitions
         driveMode = DriveModes.TANK;
 
@@ -88,26 +93,18 @@ public class TeleOp extends OpMode {
 
     @Override
     public void start() {
-        //controller.startThread();
         T_controllerThread.start();
     }
 
     @Override
     public void loop() {
-        //driveRPower = controller.C1_stickRy;
-        //driveLPower = controller.C1_stickLy;
         M_driveFR.setPower(driveRPower);
         M_driveFL.setPower(driveLPower);
         M_driveBR.setPower(driveRPower);
         M_driveBL.setPower(driveLPower);
-        if(Math.abs(pickupPower) > 0.0f) {
-            isPickup = true;
-        } else {
-            isPickup = false;
-        }
         M_pickup.setPower(pickupPower);
-        telemetry.addData("Text", "*** Robot Data***");
 
+        telemetry.addData("Text", "*** Robot Data***");
         telemetry.addData("R Power", "R Power: " + String.format("%.2f", driveRPower));
         telemetry.addData("L Power", "R Power: " + String.format("%.2f", driveLPower));
     }
@@ -115,12 +112,16 @@ public class TeleOp extends OpMode {
     @Override
     public void stop() {
         T_controllerThread.interrupt();
+        M_driveFR.setPower(STOP);
+        M_driveFL.setPower(STOP);
+        M_driveBR.setPower(STOP);
+        M_driveBL.setPower(STOP);
+        M_pickup.setPower(STOP);
     }
 
     private class ControllerThread implements Runnable {
         private final float C_STICK_TOP_THRESHOLD = 0.85f,      // least value for which stick value read from motor will be 1.0f
-                C_STICK_BOTTOM_THRESHOLD = 0.05f,   // greatest value for which stick value read from motor will be 0.0f
-                PICKUP_POWER = 0.9f;
+                            PICKUP_POWER = 0.9f;
 
         // converts all of the controller sticks into more sensitive values
         // use a negative value for y axis since controller reads -1 when pushed forward
@@ -132,18 +133,12 @@ public class TeleOp extends OpMode {
                 while(!Thread.currentThread().isInterrupted()) {
                     driveRPower = convertStick(-gamepad1.right_stick_y);
                     driveLPower = convertStick(-gamepad1.left_stick_y);
-                    if(!isPickup)
-                        if(gamepad1.right_bumper) {
-                            pickupPower = PICKUP_POWER;
-                        } else if(gamepad1.left_bumper) {
-                            pickupPower = -PICKUP_POWER;
-                        } else {
-                            pickupPower = 0.0f;
-                        }
-                    else {
-                        if(gamepad1.right_bumper || gamepad1.left_bumper) {
-                            pickupPower = 0.0f;
-                        }
+                    if (gamepad1.right_bumper) {
+                        pickupPower = PICKUP_POWER;
+                    } else if (gamepad1.left_bumper) {
+                        pickupPower = -PICKUP_POWER;
+                    } else {
+                        pickupPower = STOP;
                     }
                     telemetry.addData("Thread is running", "Thread is running");
                     Thread.sleep(10);
