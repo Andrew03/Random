@@ -20,8 +20,8 @@ public class TeleOp extends OpMode {
             M_driveFL, // front left drive motor
             M_driveBR, // back right drive motor
             M_driveBL, // back left drive motor
-            M_pickup;  // pickup motor
-            //M_lift,    // lift motor
+            M_pickup,  // pickup motor
+            M_lift;    // lift motor
             //M_hangR,   // right hanging motor
             //M_hangL;   // left hanging motor
     // all of the servo declarations
@@ -40,7 +40,8 @@ public class TeleOp extends OpMode {
             */
     float   driveRPower = 0.0f,
             driveLPower = 0.0f,
-            pickupPower = 0.0f;
+            pickupPower = 0.0f,
+            liftPower   = 0.0f;
     boolean isPickup = false;
     ControllerThread R_controllerThread;
     Thread T_controllerThread;
@@ -63,8 +64,8 @@ public class TeleOp extends OpMode {
         M_driveBR = hardwareMap.dcMotor.get("M_driveBR");
         M_driveBL = hardwareMap.dcMotor.get("M_driveBL");
         M_pickup = hardwareMap.dcMotor.get("M_pickup");
-        /*M_lift = hardwareMap.dcMotor.get("M_lift");
-        M_hangR = hardwareMap.dcMotor.get("M_hangR");
+        M_lift = hardwareMap.dcMotor.get("M_lift");
+        /*M_hangR = hardwareMap.dcMotor.get("M_hangR");
         M_hangL = hardwareMap.dcMotor.get("M_hangL");
 
         // all of the servo definitions
@@ -83,6 +84,8 @@ public class TeleOp extends OpMode {
 
         M_driveFR.setDirection(DcMotor.Direction.REVERSE);
         M_driveBR.setDirection(DcMotor.Direction.REVERSE);
+        M_pickup.setDirection(DcMotor.Direction.REVERSE);
+        M_lift.setDirection(DcMotor.Direction.REVERSE);
 
         R_controllerThread = new ControllerThread();
         T_controllerThread = new Thread(R_controllerThread, "R_controllerThread");
@@ -103,6 +106,7 @@ public class TeleOp extends OpMode {
         M_driveBR.setPower(driveRPower);
         M_driveBL.setPower(driveLPower);
         M_pickup.setPower(pickupPower);
+        M_lift.setPower(liftPower);
 
         telemetry.addData("Text", "*** Robot Data***");
         telemetry.addData("R Power", "R Power: " + String.format("%.2f", driveRPower));
@@ -117,11 +121,13 @@ public class TeleOp extends OpMode {
         M_driveBR.setPower(STOP);
         M_driveBL.setPower(STOP);
         M_pickup.setPower(STOP);
+        M_lift.setPower(STOP);
     }
 
     private class ControllerThread implements Runnable {
         private final float C_STICK_TOP_THRESHOLD = 0.85f,      // least value for which stick value read from motor will be 1.0f
-                            PICKUP_POWER = 0.9f;
+                            PICKUP_POWER = 1.0f,
+                            LIFT_POWER = 1.0f;
 
         // converts all of the controller sticks into more sensitive values
         // use a negative value for y axis since controller reads -1 when pushed forward
@@ -133,6 +139,7 @@ public class TeleOp extends OpMode {
                 while(!Thread.currentThread().isInterrupted()) {
                     driveRPower = convertStick(-gamepad1.right_stick_y);
                     driveLPower = convertStick(-gamepad1.left_stick_y);
+
                     if (gamepad1.right_bumper) {
                         pickupPower = PICKUP_POWER;
                     } else if (gamepad1.left_bumper) {
@@ -140,6 +147,15 @@ public class TeleOp extends OpMode {
                     } else {
                         pickupPower = STOP;
                     }
+
+                    if(gamepad1.right_trigger > 0.0f) {
+                        liftPower = LIFT_POWER;
+                    } else if(gamepad1.left_trigger > 0.0f) {
+                        liftPower = -LIFT_POWER;
+                    } else {
+                        liftPower = STOP;
+                    }
+
                     telemetry.addData("Thread is running", "Thread is running");
                     Thread.sleep(10);
                 }
