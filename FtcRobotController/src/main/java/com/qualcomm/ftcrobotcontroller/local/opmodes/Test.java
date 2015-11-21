@@ -173,8 +173,6 @@ public class Test extends OpMode {
         this.M_driveBR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         this.M_driveBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         this.M_lift.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-
-
     }
 
     @Override
@@ -210,6 +208,12 @@ public class Test extends OpMode {
             M_pickupPower = -PICKUP_POWER;
         } else {
             M_pickupPower = STOP;
+        }
+
+        if(gamepad1.a) {
+            S_basketRotatePos += 0.01d;
+        } else if(gamepad1.b) {
+            S_basketRotatePos -= 0.01d;
         }
 
         // lift control block
@@ -251,6 +255,7 @@ public class Test extends OpMode {
                     S_climbersDepositPos = S_CLIMBERS_DEPOSIT_START_POS;
                 }
                 */
+        telemetry.addData("Servo Pos", S_basketRotatePos);
         // updates all the motor powers
         //this.M_driveBR.setPower(this.M_drivePowerR);
         //this.M_driveBL.setPower(this.M_drivePowerL);
