@@ -10,6 +10,27 @@ import com.qualcomm.robotcore.util.Range;
  * Created by Andrew on 10/23/2015.
  */
 
+// instructions: //////////////////////////
+    /*
+    left and right joysticksd gamepad 1 control driving, up down, tank drive
+    right bumper to pick up, left bumper to push out from pickup
+    right trigger to raise lift, left trigger to lower
+    a to release balls, b to reset basket drop
+
+    gamepad 2
+    axby buttons control weird basket angles
+    up on dpad will reset basket to original position
+
+    fix on the robot
+        lift doesn't go down all the way
+        basket doesn't have a thing to stop balls from falling out
+        guards on bottom to prevent balls from going in
+        gaurds to prevent balls from going around isnide basket
+        adhesive doesn't stick
+        I don't have any decent auton so use nullOpMode if they make you select one
+        run teleopmode for teleop
+     */
+
 // 1120 pulses per rev
 
 // the main teleop opmode we will be using
@@ -25,7 +46,7 @@ public class TeleOp extends OpMode {
             M_driveBL   = null, // back left drive motor
             M_pickup    = null, // pickup motor
             M_lift      = null, // lift motor
-            M_hangR     = null, // right hang motor
+            M_clamp     = null, // right hang motor
             M_hangL     = null; // left hang motor
 
     // servo declarations
@@ -36,7 +57,7 @@ public class TeleOp extends OpMode {
             S_liftL                 = null, // left servo that supports lift
             S_basketRotate          = null, // right servo on the basket
             S_basketRelease         = null, // left servo on the basket
-            S_pickupFL              = null, // front left servo of the pickup
+            S_basketTilt            = null, // front left servo of the pickup
             S_pickupSR              = null, // servo on right side of the pickup
             S_pickupSL              = null, // servo on left side of the pickup
             S_hitchR                = null, // right hitch servo
@@ -48,7 +69,8 @@ public class TeleOp extends OpMode {
 
     // all of the constant motor powers
     final double    PICKUP_POWER    = 0.8d,
-            LIFT_POWER      = 1.0d;
+                    LIFT_POWER      = 1.0d,
+                    CLAMP_POWER     = 0.5d;
 
     // all of the starting/open servo positions
     final double    S_CLIMBERS_KNOCKDOWN_START_POS_R    = Servo.MIN_POSITION,
@@ -56,9 +78,9 @@ public class TeleOp extends OpMode {
                     S_CLIMBERS_DEPOSIT_START_POS        = 0.90d,
                     S_LIFT_START_POS_R                  = Servo.MIN_POSITION,
                     S_LIFT_START_POS_L                  = Servo.MIN_POSITION,
-                    S_BASKET_ROTATE_START_POS           = 0.67d,
+                    S_BASKET_ROTATE_START_POS           = 0.61d,
                     S_BASKET_RELEASE_START_POS          = 0.34d,
-                    S_PICKUP_START_POS_FL               = Servo.MIN_POSITION,
+                    S_BASKET_TILT_START_POS             = 0.61d,
                     S_PICKUP_START_POS_SR               = Servo.MIN_POSITION,
                     S_PICKUP_START_POS_SL               = Servo.MIN_POSITION,
                     S_HITCH_START_POS_R                 = Servo.MIN_POSITION,
@@ -72,7 +94,7 @@ public class TeleOp extends OpMode {
                     S_LIFT_END_POS_L                    = Servo.MAX_POSITION,
                     S_BASKET_ROTATE_END_POS             = Servo.MAX_POSITION,
                     S_BASKET_RELEASE_END_POS            = Servo.MAX_POSITION,
-                    S_PICKUP_END_POS_FR                 = Servo.MAX_POSITION,
+                    S_BASKET_TILT_END_POS               = Servo.MIN_POSITION,
                     S_PICKUP_END_POS_FL                 = Servo.MAX_POSITION,
                     S_PICKUP_END_POS_SR                 = Servo.MAX_POSITION,
                     S_PICKUP_END_POS_SL                 = Servo.MAX_POSITION,
@@ -84,7 +106,7 @@ public class TeleOp extends OpMode {
             M_drivePowerL = STOP,
             M_pickupPower = STOP,
             M_liftPower   = STOP,
-            M_hangPowerR  = STOP,
+            M_clampPower  = STOP,
             M_hangPowerL  = STOP;
 
     // servo positions
@@ -95,7 +117,7 @@ public class TeleOp extends OpMode {
             S_liftPosL               = S_LIFT_START_POS_L,
             S_basketRotatePos        = S_BASKET_ROTATE_START_POS,
             S_basketReleasePos       = S_BASKET_RELEASE_START_POS,
-            S_pickupPosFL            = S_PICKUP_START_POS_FL,
+            S_basketTiltPos          = S_BASKET_TILT_START_POS,
             S_pickupPosSR            = S_PICKUP_START_POS_SR,
             S_pickupPosSL            = S_PICKUP_START_POS_SL,
             S_hitchPosR              = S_HITCH_START_POS_R,
@@ -156,7 +178,7 @@ public class TeleOp extends OpMode {
         this.M_driveBL  = this.hardwareMap.dcMotor.get("M_driveBL");
         this.M_pickup   = this.hardwareMap.dcMotor.get("M_pickup");
         this.M_lift     = this.hardwareMap.dcMotor.get("M_lift");
-        //this.M_hangR    = this.hardwareMap.dcMotor.get("M_hangR");
+        //this.M_clamp    = this.hardwareMap.dcMotor.get("M_clamp");
         //this.M_hangL    = this.hardwareMap.dcMotor.get("M_hangL");
 
         // mapping servo variables to their hardware counterparts
@@ -167,7 +189,7 @@ public class TeleOp extends OpMode {
         //this.S_liftL                = this.hardwareMap.servo.get("S_liftL");
         this.S_basketRotate         = this.hardwareMap.servo.get("S_basketRotate");
         this.S_basketRelease        = this.hardwareMap.servo.get("S_basketRelease");
-        //this.S_pickupFL             = this.hardwareMap.servo.get("S_pickupFL");
+        this.S_basketTilt           = this.hardwareMap.servo.get("S_basketTilt");
         //this.S_pickupSR             = this.hardwareMap.servo.get("S_pickupSR");
         //this.S_pickupSL             = this.hardwareMap.servo.get("S_pickupSL");
         //this.S_hitchR               = this.hardwareMap.servo.get("S_hitchR");
@@ -186,8 +208,8 @@ public class TeleOp extends OpMode {
         this.M_driveBR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         this.M_driveBL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         this.M_lift.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-        //this.M_hangR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         //this.M_hangL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+        // this.M_hangR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
 
         this.M_driveFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         this.M_driveFL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
@@ -201,10 +223,10 @@ public class TeleOp extends OpMode {
 
     }
 
-    double ticksToDegrees;
+    //double ticksToDegrees;
     @Override
     public void loop() {
-        double encoderValueRs = (M_driveFR.getCurrentPosition() + M_driveBR.getCurrentPosition()) / 2;
+        /*double encoderValueRs = (M_driveFR.getCurrentPosition() + M_driveBR.getCurrentPosition()) / 2;
         double encoderValueLs = (M_driveFL.getCurrentPosition() + M_driveBL.getCurrentPosition()) / 2;
         double currentAngle = (encoderValueLs - encoderValueRs) / 2 * ticksToDegrees;
         double targetAngle;
@@ -236,7 +258,7 @@ public class TeleOp extends OpMode {
             default:
                 break;
         }
-
+        */
         M_drivePowerR = convertStick(-gamepad1.right_stick_y);
         M_drivePowerL = convertStick(-gamepad1.left_stick_y);
 
@@ -258,16 +280,41 @@ public class TeleOp extends OpMode {
         }
 
         // basket control block
-        if(gamepad1.x) {
+        if(gamepad1.a) {
             S_basketReleasePos = S_BASKET_RELEASE_END_POS;
-        } else if(gamepad1.y) {
+        } else if(gamepad1.b) {
             S_basketReleasePos = S_BASKET_RELEASE_START_POS;
         }
 
-        if(gamepad1.a) {
-            S_basketRotatePos += 0.01d;
-        } else if(gamepad1.b) {
-            S_basketRotatePos -= 0.01d;
+        // climber deposit pos
+        if(gamepad1.y && S_climbersDepositPos > 0.04) {
+            S_climbersDepositPos -= 0.03d;
+        } else if(gamepad1.x) {
+            S_climbersDepositPos = S_CLIMBERS_DEPOSIT_START_POS;
+        }
+
+        if(gamepad2.x) {
+            if(S_basketTiltPos < 0.99d) {
+                S_basketTiltPos += 0.01d;
+            }
+        } else if(gamepad2.y) {
+            if(S_basketTiltPos > 0.01d) {
+                S_basketTiltPos -= 0.01d;
+            }
+        }
+
+        if(gamepad2.a) {
+            if(S_basketRotatePos < 0.99d) {
+                S_basketRotatePos += 0.01d;
+            }
+        } else if(gamepad2.b) {
+            if(S_basketRotatePos > 0.01d) {
+                S_basketRotatePos -= 0.01d;
+            }
+        }
+        if(gamepad2.dpad_up) {
+            S_basketTiltPos = S_BASKET_TILT_START_POS;
+            S_basketRotatePos = S_BASKET_ROTATE_START_POS;
         }
 
         // updates all the motor powers
@@ -277,7 +324,7 @@ public class TeleOp extends OpMode {
         this.M_driveFL.setPower(this.M_drivePowerL);
         this.M_pickup.setPower(this.M_pickupPower);
         this.M_lift.setPower(this.M_liftPower);
-        //this.M_hangR.setPower(this.M_hangPowerR);
+        //this.M_clamp.setPower(this.M_clampPower);
         //this.M_hangL.setPower(this.M_hangPowerL);
 
         // updates all the servo positions
@@ -288,14 +335,15 @@ public class TeleOp extends OpMode {
         //this.S_liftL.setPosition(this.S_liftPosL);
         this.S_basketRotate.setPosition(this.S_basketRotatePos);
         this.S_basketRelease.setPosition(this.S_basketReleasePos);
-        //this.S_pickupFL.setPosition(this.S_pickupPosFL);
+        this.S_basketTilt.setPosition(this.S_basketTiltPos);
         //this.S_pickupSR.setPosition(this.S_pickupPosSR);
         //this.S_pickupSL.setPosition(this.S_pickupPosSL);
         //this.S_hitchR.setPosition(this.S_hitchPosR);
         //this.S_hitchL.setPosition(this.S_hitchPosL);
 
         telemetry.addData("Text", "*** Robot Data***");
-        telemetry.addData("Servo Pos", S_basketRotatePos);
+        telemetry.addData("Servo Rot Pos", S_basketRotatePos);
+        telemetry.addData("Servo Tilt Pos", S_basketTiltPos);
     }
 
     @Override
@@ -306,7 +354,7 @@ public class TeleOp extends OpMode {
         this.M_driveFL.setPower(STOP);
         this.M_pickup.setPower(STOP);
         this.M_lift.setPower(STOP);
-        //this.M_hangR.setPower(STOP);
+        //this.M_clamp.setPower(STOP);
         //this.M_hangL.setPower(STOP);
 
         //this.S_climbersKnockdownR.setPosition(S_CLIMBERS_KNOCKDOWN_START_POS_R);
