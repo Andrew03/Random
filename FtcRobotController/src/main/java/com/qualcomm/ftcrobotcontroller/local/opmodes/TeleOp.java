@@ -182,8 +182,8 @@ public class TeleOp extends OpMode {
         //this.M_hangL    = this.hardwareMap.dcMotor.get("M_hangL");
 
         // mapping servo variables to their hardware counterparts
-        //this.S_climbersKnockdownR   = this.hardwareMap.servo.get("S_climbersKnockdownR");
-        //this.S_climbersKnockdownL   = this.hardwareMap.servo.get("S_climbersKnockdownL");
+        this.S_climbersKnockdownR   = this.hardwareMap.servo.get("S_climbersKnockdownR");
+        this.S_climbersKnockdownL   = this.hardwareMap.servo.get("S_climbersKnockdownL");
         this.S_climbersDeposit      = this.hardwareMap.servo.get("S_climbersDeposit");
         //this.S_liftR                = this.hardwareMap.servo.get("S_liftR");
         //this.S_liftL                = this.hardwareMap.servo.get("S_liftL");
@@ -316,6 +316,25 @@ public class TeleOp extends OpMode {
             S_basketTiltPos = S_BASKET_TILT_START_POS;
             S_basketRotatePos = S_BASKET_ROTATE_START_POS;
         }
+        if(gamepad2.right_trigger > 0.0d) {
+            if(S_climbersKnockdownPosR < 0.99d) {
+                S_climbersKnockdownPosR += 0.01d;
+            }
+        } else if(gamepad2.left_trigger > 0.0d) {
+            if(S_climbersKnockdownPosR > 0.01d) {
+                S_climbersKnockdownPosR -= 0.01d;
+            }
+        }
+
+        if(gamepad2.right_bumper) {
+            if(S_climbersKnockdownPosL < 0.99d) {
+                S_climbersKnockdownPosL += 0.01d;
+            }
+        } else if(gamepad2.left_bumper) {
+            if(S_climbersKnockdownPosL > 0.01d) {
+                S_climbersKnockdownPosL -= 0.01d;
+            }
+        }
 
         // updates all the motor powers
         this.M_driveBR.setPower(this.M_drivePowerR);
@@ -328,8 +347,8 @@ public class TeleOp extends OpMode {
         //this.M_hangL.setPower(this.M_hangPowerL);
 
         // updates all the servo positions
-        //this.S_climbersKnockdownR.setPosition(this.S_climbersKnockdownPosR);
-        //this.S_climbersKnockdownL.setPosition(this.S_climbersKnockdownPosL);
+        this.S_climbersKnockdownR.setPosition(this.S_climbersKnockdownPosR);
+        this.S_climbersKnockdownL.setPosition(this.S_climbersKnockdownPosL);
         this.S_climbersDeposit.setPosition(this.S_climbersDepositPos);
         //this.S_liftR.setPosition(this.S_liftPosR);
         //this.S_liftL.setPosition(this.S_liftPosL);
@@ -344,6 +363,8 @@ public class TeleOp extends OpMode {
         telemetry.addData("Text", "*** Robot Data***");
         telemetry.addData("Servo Rot Pos", S_basketRotatePos);
         telemetry.addData("Servo Tilt Pos", S_basketTiltPos);
+        telemetry.addData("Climber R Pos", S_climbersKnockdownPosR);
+        telemetry.addData("Climber L Pos", S_climbersKnockdownPosL);
     }
 
     @Override
