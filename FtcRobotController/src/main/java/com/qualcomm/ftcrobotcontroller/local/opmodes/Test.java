@@ -104,8 +104,9 @@ public class Test extends OpMode {
             S_hitchPosL              = S_HITCH_START_POS_L;
 
     // servo powers
-    final double    S_BASKET_TILT_SPEED_LEFT = 0.75d,
+    final double    S_BASKET_TILT_SPEED_LEFT    = 0.75d,
                     S_BASKET_TILT_SPEED_RIGHT   = 0.25d,
+                    S_BASKET_TILT_SPEED_DOWN    = 0.45d,
                     S_BASKET_TILT_SPEED_STOP    = 0.5d;
 
     // servo speeds
@@ -137,6 +138,7 @@ public class Test extends OpMode {
     private final float C_STICK_TOP_THRESHOLD = 0.85f;
     private double convertStick(float controllerValue) {   return Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD), -1.0d, 1.0d); }
     private boolean isRed() {   return colorSensor.red() > colorSensor.blue();  }
+    private boolean isBlue() {  return colorSensor.blue() > colorSensor.red();  }
     @Override
     public void init() {
         // mapping motor variables to their hardware counterparts
@@ -279,8 +281,6 @@ public class Test extends OpMode {
             S_basketTiltSpeed = S_BASKET_TILT_SPEED_RIGHT;
         } else if(gamepad2.dpad_down) {
             S_basketTiltSpeed = S_BASKET_TILT_SPEED_LEFT;
-        } else {
-            S_basketTiltSpeed = S_BASKET_TILT_SPEED_STOP;
         }
 
         if(gamepad2.dpad_right && S_basketRotatePos > 0.01d) {
@@ -288,28 +288,10 @@ public class Test extends OpMode {
         } else if(gamepad2.dpad_left && S_basketRotatePos < 0.99d) {
             S_basketRotatePos += 0.01d;
         }
-        if(gamepad2.back) {
+        if(gamepad2.start) {
+            S_basketTiltSpeed = S_BASKET_TILT_SPEED_DOWN;
             S_basketRotatePos = S_BASKET_ROTATE_START_POS;
         }
-        /*if(gamepad2.right_trigger > 0.0d) {
-            if(S_climbersKnockdownPosR < 0.99d) {
-                S_climbersKnockdownPosR += 0.01d;
-            }
-        } else if(gamepad2.left_trigger > 0.0d) {
-            if(S_climbersKnockdownPosR > 0.01d) {
-                S_climbersKnockdownPosR -= 0.01d;
-            }
-        }
-
-        if(gamepad2.right_bumper) {
-            if(S_climbersKnockdownPosL < 0.99d) {
-                S_climbersKnockdownPosL += 0.01d;
-            }
-        } else if(gamepad2.left_bumper) {
-            if(S_climbersKnockdownPosL > 0.01d) {
-                S_climbersKnockdownPosL -= 0.01d;
-            }
-        }*/
 
         if(gamepad2.a) {
             S_climbersKnockdownPosR = S_CLIMBERS__KNOCKDOWN_END_POS_R;
@@ -350,7 +332,7 @@ public class Test extends OpMode {
         telemetry.addData("Servo Tilt Pos", S_basketTilt.getPosition());
         if(isRed()) {
             telemetry.addData("It's red!", ":D");
-        } else {
+        } else if(isBlue()) {
             telemetry.addData("It's blue!", ":(");
         }
     }
