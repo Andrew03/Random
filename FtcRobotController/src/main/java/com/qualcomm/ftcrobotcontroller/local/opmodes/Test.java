@@ -1,6 +1,7 @@
 package com.qualcomm.ftcrobotcontroller.local.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -40,15 +41,19 @@ public class Test extends OpMode {
             S_pickupSL              = null, // servo on left side of the pickup
             S_hitchR                = null, // right hitch servo
             S_hitchL                = null; // left hitch servo
+
+    // sensor declarations
+    ColorSensor colorSensor         = null; // color sensor
+
     // all of the important constants
     final double    STOP                   = 0.0d,
-            MAX_POWER              = 1.0d;
+                    MAX_POWER              = 1.0d;
     final int       TICKS_PER_REVOLUTION   = 1120;
 
     // all of the constant motor powers
     final double    PICKUP_POWER    = 0.8d,
-            LIFT_POWER      = 1.0d,
-            CLAMP_POWER     = 0.5d;
+                    LIFT_POWER      = 1.0d,
+                    CLAMP_POWER     = 0.5d;
 
     // all of the starting/open servo positions
     final double    S_CLIMBERS_KNOCKDOWN_START_POS_R    = 0.05d,
@@ -131,7 +136,7 @@ public class Test extends OpMode {
 
     private final float C_STICK_TOP_THRESHOLD = 0.85f;
     private double convertStick(float controllerValue) {   return Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD), -1.0d, 1.0d); }
-
+    private boolean isRed() {   return colorSensor.red() > colorSensor.blue();  }
     @Override
     public void init() {
         // mapping motor variables to their hardware counterparts
@@ -157,6 +162,9 @@ public class Test extends OpMode {
         //this.S_pickupSL             = this.hardwareMap.servo.get("S_pickupSL");
         //this.S_hitchR               = this.hardwareMap.servo.get("S_hitchR");
         //this.S_hitchL               = this.hardwareMap.servo.get("S_hitchL");
+
+        // mapping sensors to their hardware counterparts
+        this.colorSensor            = this.hardwareMap.colorSensor.get("S_colorSensor");
 
         // fixing motor directions
         this.M_driveFR.setDirection(DcMotor.Direction.REVERSE);
@@ -340,6 +348,11 @@ public class Test extends OpMode {
         telemetry.addData("Text", "*** Robot Data***");
         telemetry.addData("Servo Rot Pos", S_basketRotate.getPosition());
         telemetry.addData("Servo Tilt Pos", S_basketTilt.getPosition());
+        if(isRed()) {
+            telemetry.addData("It's red!", ":D");
+        } else {
+            telemetry.addData("It's blue!", ":(");
+        }
     }
     @Override
     public void stop() {
