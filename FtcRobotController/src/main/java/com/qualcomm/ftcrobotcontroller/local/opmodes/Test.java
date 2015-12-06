@@ -51,7 +51,7 @@ public class Test extends OpMode {
     final int       TICKS_PER_REVOLUTION   = 1120;
 
     // all of the constant motor powers
-    final double    PICKUP_POWER    = 0.8d,
+    final double    PICKUP_POWER    = 0.65d,
                     LIFT_POWER      = 1.0d,
                     CLAMP_POWER     = 0.5d;
 
@@ -61,7 +61,7 @@ public class Test extends OpMode {
                     S_CLIMBERS_DEPOSIT_START_POS        = 0.90d,
                     S_LIFT_START_POS_R                  = Servo.MIN_POSITION,
                     S_LIFT_START_POS_L                  = Servo.MIN_POSITION,
-                    S_BASKET_ROTATE_START_POS           = 0.61d,
+                    S_BASKET_ROTATE_START_POS           = 0.37d,
                     S_BASKET_RELEASE_START_POS          = 0.34d,
                     S_PICKUP_START_POS_SR               = Servo.MIN_POSITION,
                     S_PICKUP_START_POS_SL               = Servo.MIN_POSITION,
@@ -106,7 +106,7 @@ public class Test extends OpMode {
     // servo powers
     final double    S_BASKET_TILT_SPEED_LEFT    = 0.75d,
                     S_BASKET_TILT_SPEED_RIGHT   = 0.25d,
-                    S_BASKET_TILT_SPEED_DOWN    = 0.45d,
+                    S_BASKET_TILT_SPEED_DOWN    = 0.55d,
                     S_BASKET_TILT_SPEED_STOP    = 0.5d;
 
     // servo speeds
@@ -229,10 +229,16 @@ public class Test extends OpMode {
                 currentAngle = (encoderValueLs - encoderValueRs) / 2 * ticksToDegrees;  // in degrees
                 targetAngle = findTarget(-gamepad1.left_stick_y, gamepad1.left_stick_x, quadrantL); // in degrees
                 if(Math.abs(targetAngle - currentAngle) > turnThreshold) {
+                    // use TurnPID variables, make an if statement
 
+
+
+                    M_drivePowerR = turnPIDVal;
+                    M_drivePowerL = turnPIDVal;
+                } else {
+                    M_drivePowerR = Math.sqrt(Math.pow(gamepad1.left_stick_y, 2) + Math.pow(gamepad1.left_stick_x, 2));
+                    M_drivePowerL = M_drivePowerR;
                 }
-                M_drivePowerR = Math.sqrt(Math.pow(gamepad1.left_stick_y, 2) + Math.pow(gamepad1.left_stick_x, 2));
-                M_drivePowerL = M_drivePowerR;
                 break;
             case THRUST:
                 quadrantL = findQuadrant(-gamepad1.left_stick_y, gamepad1.left_stick_x);
