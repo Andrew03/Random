@@ -19,41 +19,41 @@ import com.qualcomm.ftcrobotcontroller.local.lib.TurnPIDThread;
  */
 public class Test extends OpMode {
     // motor declarations
-    DcMotor M_driveFR   = null, // front right drive motor
-            M_driveFL   = null, // front left drive motor
-            M_driveBR   = null, // back right drive motor
-            M_driveBL   = null, // back left drive motor
-            M_pickup    = null, // pickup motor
-            M_lift      = null, // lift motor
-            M_clamp     = null, // right hang motor
-            M_hangL     = null; // left hang motor
+    DcMotor M_driveFR = null, // front right drive motor
+            M_driveFL = null, // front left drive motor
+            M_driveBR = null, // back right drive motor
+            M_driveBL = null, // back left drive motor
+            M_pickup = null, // pickup motor
+            M_lift = null, // lift motor
+            M_clamp = null, // right hang motor
+            M_hangL = null; // left hang motor
 
     // servo declarations
-    Servo   S_climbersKnockdownR    = null, // right servo that knocks down climbers
-            S_climbersKnockdownL    = null, // left servo that knocks down climbers
-            S_climbersDeposit       = null, // servo that deposits climbers
-            S_liftR                 = null, // right servo that supports lift
-            S_liftL                 = null, // left servo that supports lift
-            S_basketRotate          = null, // right servo on the basket
-            S_basketRelease         = null, // left servo on the basket
-            S_basketTilt            = null, // front left servo of the pickup
-            S_pickupSR              = null, // servo on right side of the pickup
-            S_pickupSL              = null, // servo on left side of the pickup
-            S_hitchR                = null, // right hitch servo
-            S_hitchL                = null; // left hitch servo
+    Servo S_climbersKnockdownR = null, // right servo that knocks down climbers
+            S_climbersKnockdownL = null, // left servo that knocks down climbers
+            S_climbersDeposit = null, // servo that deposits climbers
+            S_liftR = null, // right servo that supports lift
+            S_liftL = null, // left servo that supports lift
+            S_basketRotate = null, // right servo on the basket
+            S_basketRelease = null, // left servo on the basket
+            S_basketTilt = null, // front left servo of the pickup
+            S_pickupSR = null, // servo on right side of the pickup
+            S_pickupSL = null, // servo on left side of the pickup
+            S_hitchR = null, // right hitch servo
+            S_hitchL = null; // left hitch servo
 
     // sensor declarations
-    ColorSensor colorSensor         = null; // color sensor
+    ColorSensor colorSensor = null; // color sensor
 
     // all of the important constants
-    final double    STOP                   = 0.0d,
-                    MAX_POWER              = 1.0d;
-    final int       TICKS_PER_REVOLUTION   = 1120;
+    final double STOP = 0.0d,
+                MAX_POWER = 1.0d;
+    final int TICKS_PER_REVOLUTION = 1120;
 
     // all of the constant motor powers
-    final double    PICKUP_POWER    = 0.65d,
-                    LIFT_POWER      = 1.0d,
-                    CLAMP_POWER     = 0.5d;
+    final double PICKUP_POWER = 0.65d,
+            LIFT_POWER = 1.0d,
+            CLAMP_POWER = 0.5d;
 
     // all of the starting/open servo positions
     final double    S_CLIMBERS_KNOCKDOWN_START_POS_R    = 0.05d,
@@ -63,25 +63,27 @@ public class Test extends OpMode {
                     S_LIFT_START_POS_L                  = Servo.MIN_POSITION,
                     S_BASKET_ROTATE_START_POS           = 0.37d,
                     S_BASKET_RELEASE_START_POS          = 0.34d,
+                    S_BUTTON_PUSHER_START_POS = Servo.MIN_POSITION,
                     S_PICKUP_START_POS_SR               = Servo.MIN_POSITION,
                     S_PICKUP_START_POS_SL               = Servo.MIN_POSITION,
                     S_HITCH_START_POS_R                 = Servo.MIN_POSITION,
                     S_HITCH_START_POS_L                 = Servo.MIN_POSITION;
 
+
     // all of the ending/close servo positions
     final double    S_CLIMBERS__KNOCKDOWN_END_POS_R     = 0.22d,
                     S_CLIMBERS_KNOCKDOWN_END_POS_L      = 0.22d,
                     S_CLIMBERS_DEPOSIT_END_POS          = Servo.MIN_POSITION,
-                    S_LIFT_END_POS_R                    = Servo.MAX_POSITION,
-                    S_LIFT_END_POS_L                    = Servo.MAX_POSITION,
                     S_BASKET_ROTATE_END_POS             = Servo.MAX_POSITION,
-                    S_BASKET_RELEASE_END_POS            = Servo.MAX_POSITION,
-                    S_PICKUP_END_POS_FL                 = Servo.MAX_POSITION,
-                    S_PICKUP_END_POS_SR                 = Servo.MAX_POSITION,
-                    S_PICKUP_END_POS_SL                 = Servo.MAX_POSITION,
-                    S_HITCH_END_POS_R                   = Servo.MAX_POSITION,
-                    S_HITCH_END_POS_L                   = Servo.MAX_POSITION;
+                    S_BASKET_RELEASE_END_POS            = Servo.MAX_POSITION;
 
+    // special pos for tilt servo
+    final double    S_BASKET_TILT_POS_DOWN = 0.5d,
+                    S_BASKET_TILT_POS_RIGHT = Servo.MAX_POSITION,
+                    S_BASKET_TILT_POS_LEFT  = Servo.MIN_POSITION;
+    // special pos for button pusher servo
+    final double    S_BUTTON_PUSHER_RED_POS = Servo.MIN_POSITION,
+                    S_BUTTON_PUSHER_BLUE_POS = Servo.MIN_POSITION;
     // motor powers
     double  M_drivePowerR = STOP,
             M_drivePowerL = STOP,
@@ -96,6 +98,7 @@ public class Test extends OpMode {
             S_climbersDepositPos     = S_CLIMBERS_DEPOSIT_START_POS,
             S_liftPosR               = S_LIFT_START_POS_R,
             S_liftPosL               = S_LIFT_START_POS_L,
+            S_basketTiltPos          = S_BASKET_TILT_POS_DOWN,
             S_basketRotatePos        = S_BASKET_ROTATE_START_POS,
             S_basketReleasePos       = S_BASKET_RELEASE_START_POS,
             S_pickupPosSR            = S_PICKUP_START_POS_SR,
@@ -107,10 +110,13 @@ public class Test extends OpMode {
     final double    S_BASKET_TILT_SPEED_LEFT    = 0.75d,
                     S_BASKET_TILT_SPEED_RIGHT   = 0.25d,
                     S_BASKET_TILT_SPEED_DOWN    = 0.55d,
-                    S_BASKET_TILT_SPEED_STOP    = 0.5d;
+                    S_SPEED_STOP    = 0.5d,
+                    S_BASKET_ROTATE_SPEED_LEFT  = 0.55d,
+                    S_BASKET_ROTATE_SPEED_RIGHT = 0.45d;
 
     // servo speeds
-    double S_basketTiltSpeed = S_BASKET_TILT_SPEED_STOP;
+    double S_basketTiltSpeed = S_SPEED_STOP;
+    double S_basketRotateSpeed = S_SPEED_STOP;
 
     // PID Threads
     LiftPIDThread liftPIDThread;
@@ -139,6 +145,14 @@ public class Test extends OpMode {
     private double convertStick(float controllerValue) {   return Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD), -1.0d, 1.0d); }
     private boolean isRed() {   return colorSensor.red() > colorSensor.blue();  }
     private boolean isBlue() {  return colorSensor.blue() > colorSensor.red();  }
+    private double setServoSpeed(Servo servo, double targetPos, double power) {
+        if (servo.getPosition() > targetPos) {
+            power -= 0.01d;
+        } else {
+            power += 0.01d;
+        }
+        return Range.clip(power, 0.0d, 1.0d);
+    }
     @Override
     public void init() {
         // mapping motor variables to their hardware counterparts
@@ -284,19 +298,23 @@ public class Test extends OpMode {
         }
 
         if(gamepad2.dpad_up) {
-            S_basketTiltSpeed = S_BASKET_TILT_SPEED_RIGHT;
+            S_basketTiltSpeed = S_BASKET_TILT_POS_RIGHT;
         } else if(gamepad2.dpad_down) {
-            S_basketTiltSpeed = S_BASKET_TILT_SPEED_LEFT;
+            S_basketTiltSpeed = S_BASKET_TILT_POS_LEFT;
         }
 
-        if(gamepad2.dpad_right && S_basketRotatePos > 0.01d) {
-            S_basketRotatePos -= 0.01d;
-        } else if(gamepad2.dpad_left && S_basketRotatePos < 0.99d) {
-            S_basketRotatePos += 0.01d;
+        if(gamepad2.dpad_right) {
+            S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT;
+            S_basketRotatePos = S_basketRotate.getPosition();
+        } else if(gamepad2.dpad_left) {
+            S_basketRotatePos = S_BASKET_ROTATE_SPEED_LEFT;
+            S_basketRotatePos = S_basketRotate.getPosition();
+        } else {
+            S_basketRotateSpeed = setServoSpeed(S_basketRotate, S_basketRotatePos, S_basketRotateSpeed);
         }
         if(gamepad2.start) {
-            S_basketTiltSpeed = S_BASKET_TILT_SPEED_DOWN;
-            S_basketRotatePos = S_BASKET_ROTATE_START_POS;
+            S_basketTiltPos = S_BASKET_TILT_POS_DOWN;
+            S_basketRotateSpeed = setServoSpeed(S_basketRotate, S_BASKET_ROTATE_START_POS, S_basketRotateSpeed);
         }
 
         if(gamepad2.a) {
@@ -323,9 +341,9 @@ public class Test extends OpMode {
         this.S_climbersDeposit.setPosition(this.S_climbersDepositPos);
         //this.S_liftR.setPosition(this.S_liftPosR);
         //this.S_liftL.setPosition(this.S_liftPosL);
-        this.S_basketRotate.setPosition(this.S_basketRotatePos);
+        this.S_basketRotate.setPosition(this.S_basketRotateSpeed);
         this.S_basketRelease.setPosition(this.S_basketReleasePos);
-        this.S_basketTilt.setPosition(this.S_basketTiltSpeed);
+        this.S_basketTilt.setPosition(this.S_basketTiltPos);
         //this.S_pickupSR.setPosition(this.S_pickupPosSR);
         //this.S_pickupSL.setPosition(this.S_pickupPosSL);
         //this.S_hitchR.setPosition(this.S_hitchPosR);
@@ -352,20 +370,14 @@ public class Test extends OpMode {
         this.M_driveFL.setPower(STOP);
         this.M_pickup.setPower(STOP);
         this.M_lift.setPower(STOP);
-        //this.M_clamp.setPower(STOP);
-        //this.M_hangL.setPower(STOP);
+
 
         this.S_climbersKnockdownR.setPosition(S_CLIMBERS_KNOCKDOWN_START_POS_R);
         this.S_climbersKnockdownL.setPosition(S_CLIMBERS_KNOCKDOWN_START_POS_L);
         this.S_climbersDeposit.setPosition(S_CLIMBERS_DEPOSIT_START_POS);
-        //this.S_liftR.setPosition(S_LIFT_START_POS_R);
-        //this.S_liftL.setPosition(S_LIFT_START_POS_L);
+
         this.S_basketRotate.setPosition(S_BASKET_ROTATE_START_POS);
         this.S_basketRelease.setPosition(S_BASKET_RELEASE_START_POS);
-        //this.S_pickupFL.setPosition(this.S_pickupPosFL);
-        //this.S_pickupSR.setPosition(this.S_pickupPosSR);
-        //this.S_pickupSL.setPosition(this.S_pickupPosSL);
-        //this.S_hitchR.setPosition(this.S_hitchPosR);
-        //this.S_hitchL.setPosition(this.S_hitchPosL);
+
     }
 }

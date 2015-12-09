@@ -107,9 +107,7 @@ public class Auton extends LinearOpMode {
 
     ElapsedTime clock;
 
-
-    @Override
-    public void runOpMode() throws InterruptedException {
+    private void mapStuff() {
         // mapping motor variables to their hardware counterparts
         this.M_driveFR  = this.hardwareMap.dcMotor.get("M_driveFR");
         this.M_driveFL  = this.hardwareMap.dcMotor.get("M_driveFL");
@@ -133,7 +131,9 @@ public class Auton extends LinearOpMode {
         //this.S_pickupSL             = this.hardwareMap.servo.get("S_pickupSL");
         //this.S_hitchR               = this.hardwareMap.servo.get("S_hitchR");
         //this.S_hitchL               = this.hardwareMap.servo.get("S_hitchL");
+    }
 
+    private void configureStuff() {
         // fixing motor directions
         this.M_driveFR.setDirection(DcMotor.Direction.REVERSE);
         this.M_driveBR.setDirection(DcMotor.Direction.REVERSE);
@@ -162,7 +162,18 @@ public class Auton extends LinearOpMode {
         Arrays.fill(motorTargetsTurn, 0);
 
         clock = new ElapsedTime();
+    }
 
+    private boolean waitingForClick() {
+        if(gamepad1.a) {
+            return false;
+        }
+        return true;
+    }
+    @Override
+    public void runOpMode() throws InterruptedException {
+        mapStuff();
+        configureStuff();
         ////////////////////////// run auton stuff starts here ///////////////////////////////
         int counter = 0;
         double case1Time = 0;
@@ -177,21 +188,23 @@ public class Auton extends LinearOpMode {
             switch (counter) {
                 case 0:
                     if(!hasBeenSet) {
-                    motorTargetsDrive = setDriveTarget(7.5d);
-                    hasBeenSet = true;
-                }
-                finished = driveForward();
-                if(finished) {
-                    hasBeenSet = false;
-                    counter++;
-                    stopDriving();
-                    telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
-                    telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
-                    telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
-                    telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
-                    sleep(800);
-                }
-                break;
+                        motorTargetsDrive = setDriveTarget(7.5d);
+                        hasBeenSet = true;
+                    }
+                    finished = driveForward();
+                    if(finished) {
+                        hasBeenSet = false;
+                        counter++;
+                        stopDriving();
+                        while(waitingForClick()) {
+                        telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                        telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                        telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                        telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    }
+                    break;
 
                 case 1:
                     if(!hasBeenSet) {
@@ -203,11 +216,13 @@ public class Auton extends LinearOpMode {
                         hasBeenSet = false;
                         counter++;
                         stopDriving();
+                        while(waitingForClick()) {
                         telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
                         telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
                         telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
                         telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
-                        sleep(800);
+                            sleep(100);
+                        }
                     }
                     break;
                 case 2:
@@ -220,22 +235,18 @@ public class Auton extends LinearOpMode {
                         hasBeenSet = false;
                         counter++;
                         stopDriving();
-                        telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
-                        telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
-                        telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
-                        telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
-                        sleep(1200);
+                        while(waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
                     }
                     break;
                 case 3:
-                    M_driveFR.setPower(-0.25d);
-                    M_driveFL.setPower(0.25d);
-                    M_driveBR.setPower(-0.25d);
-                    M_driveBL.setPower(0.25d);
-                    sleep(500);
-                    counter++;
-                    break;
-                    /*if(!hasBeenSet) {
+                    // failed here last time
+                    if(!hasBeenSet) {
                         motorTargetsTurn = setTurnTarget(20.0d);
                         hasBeenSet = true;
                     }
@@ -244,12 +255,14 @@ public class Auton extends LinearOpMode {
                         hasBeenSet = false;
                         counter++;
                         stopDriving();
-                        telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
-                        telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
-                        telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
-                        telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
-                        sleep(800);
-                    }*/
+                        while(waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    }
                 case 4:
                     if(!hasBeenSet) {
                         motorTargetsDrive = setDriveTarget(12.5d);
