@@ -63,7 +63,7 @@ public class Test extends OpMode {
                     S_LIFT_START_POS_L                  = Servo.MIN_POSITION,
                     S_BASKET_ROTATE_START_POS           = 0.37d,
                     S_BASKET_RELEASE_START_POS          = 0.34d,
-                    S_BUTTON_PUSHER_START_POS = Servo.MIN_POSITION,
+                    S_BUTTON_PUSHER_START_POS           = Servo.MIN_POSITION,
                     S_PICKUP_START_POS_SR               = Servo.MIN_POSITION,
                     S_PICKUP_START_POS_SL               = Servo.MIN_POSITION,
                     S_HITCH_START_POS_R                 = Servo.MIN_POSITION,
