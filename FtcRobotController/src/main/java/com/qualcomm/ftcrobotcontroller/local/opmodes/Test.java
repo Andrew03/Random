@@ -289,7 +289,7 @@ public class Test extends OpMode {
         } else {
             M_liftPower = STOP;
         }
-        
+
         // basket release control block
         if(gamepad1.a) {
             S_basketReleasePos = S_BASKET_RELEASE_END_POS;
@@ -306,6 +306,7 @@ public class Test extends OpMode {
             }
         }
 
+        /*
         switch (basketMode) {
             case AUTO:
                 // basket tilt control block
@@ -341,6 +342,7 @@ public class Test extends OpMode {
             default:
                 break;
         }
+        */
 
         /*// basket rotate control block
         if(gamepad2.dpad_right) {
@@ -389,12 +391,14 @@ public class Test extends OpMode {
             }
         }
 
+        /*
         // climber deposit pos
         if(gamepad2.dpad_up && S_climbersDepositPos > S_CLIMBERS_DEPOSIT_END_POS) {
             S_climbersDepositPos -= S_CLIMBERS_DEPOSIT_SPEED;
         } else if(gamepad2.dpad_down) {
             S_climbersDepositPos = S_CLIMBERS_DEPOSIT_START_POS;
         }
+        */
 
         // updates all the motor powers
         M_driveBR.setPower(M_drivePowerR);
