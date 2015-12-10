@@ -42,7 +42,7 @@ public class FindServoVal extends OpMode {
             S_climbersKnockdownL.setPosition(S_climbersKnockdownL.getPosition() + 0.01d);
             S_climbersDeposit.setPosition(S_climbersDeposit.getPosition() + 0.01d);
             S_buttonPusher.setPosition(S_buttonPusher.getPosition() + 0.01d);
-            S_basketRotate.setPosition(S_basketRotate.getPosition() + 0.01d);
+            S_basketRotate.setPosition(0.5d);
             S_basketRelease.setPosition(S_basketRelease.getPosition() + 0.01d);
             S_basketTilt.setPosition(S_basketTilt.getPosition() + 0.01d);
         } else if(gamepad1.start) {
@@ -50,7 +50,7 @@ public class FindServoVal extends OpMode {
             S_climbersKnockdownL.setPosition(0.0d);
             S_climbersDeposit.setPosition(0.0d);
             S_buttonPusher.setPosition(0.0d);
-            S_basketRotate.setPosition(0.0d);
+            S_basketRotate.setPosition(0.5d);
             S_basketRelease.setPosition(0.0d);
             S_basketTilt.setPosition(0.0d);
         }
