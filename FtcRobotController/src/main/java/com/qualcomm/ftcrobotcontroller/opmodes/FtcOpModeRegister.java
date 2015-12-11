@@ -35,6 +35,7 @@ import com.qualcomm.ftcrobotcontroller.local.opmodes.Auton;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.FindServoVal;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.TeleOp;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.Test;
+import com.qualcomm.ftcrobotcontroller.local.opmodes.TestAuton;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
 
@@ -70,6 +71,7 @@ public class FtcOpModeRegister implements OpModeRegister {
     manager.register("TeleOp", TeleOp.class);
     manager.register("Auton", Auton.class);
     manager.register("FindServoVals", FindServoVal.class);
+    manager.register("TestAuton", TestAuton.class);
 
 
 

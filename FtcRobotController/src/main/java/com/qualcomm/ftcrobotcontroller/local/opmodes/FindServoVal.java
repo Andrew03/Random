@@ -66,7 +66,7 @@ public class FindServoVal extends OpMode {
             S_basketTilt.setPosition(0.0d);
         }
         if(gamepad1.b) {
-            S_basketRotate.setPosition(0.55d);
+            S_basketRotate.setPosition(0.56d);
         } else if(gamepad1.x) {
             S_basketRotate.setPosition(0.47d);
         } else {

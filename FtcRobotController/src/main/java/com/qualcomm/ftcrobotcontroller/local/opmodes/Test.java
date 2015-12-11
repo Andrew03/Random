@@ -53,7 +53,7 @@ public class Test extends OpMode {
                     S_CLIMBERS_KNOCKDOWN_START_POS_L    = Servo.MAX_POSITION,
                     S_CLIMBERS_DEPOSIT_START_POS        = 0.635d,
                     S_BASKET_ROTATE_START_POS           = 0.37d,
-                    S_BASKET_TILT_START_POS             = 0.847d,
+                    S_BASKET_TILT_START_POS             = 0.875d,
                     S_BASKET_RELEASE_START_POS          = 0.34d,
                     S_BUTTON_PUSHER_START_POS           = Servo.MIN_POSITION;
 
@@ -64,7 +64,7 @@ public class Test extends OpMode {
                     S_CLIMBERS_DEPOSIT_END_POS          = Servo.MIN_POSITION,
                     S_BASKET_ROTATE_END_POS             = Servo.MAX_POSITION,
                     S_BASKET_RELEASE_END_POS            = Servo.MAX_POSITION,
-                    S_BUTTON_PUSHER_END_POS             = Servo.MIN_POSITION;
+                    S_BUTTON_PUSHER_END_POS             = 0.141d;
 
     // special pos for tilt servo
     final double    S_BASKET_TILT_POS_RIGHT     = 0.290d,
@@ -92,9 +92,10 @@ public class Test extends OpMode {
                     S_BASKET_TILT_SPEED_RIGHT   = 0.25d,
                     S_BASKET_TILT_SPEED_DOWN    = 0.55d,
                     S_SPEED_STOP                = 0.5d,
-                    S_BASKET_ROTATE_SPEED_LEFT  = 0.55d,
-                    S_BASKET_ROTATE_SPEED_LEFT_FAST = 0.57d,
-                    S_BASKET_ROTATE_SPEED_RIGHT = 0.47d,
+                    S_BASKET_ROTATE_SPEED_LEFT_SLOW  = 0.56d,
+                    S_BASKET_ROTATE_SPEED_LEFT_FAST = 0.58d,
+                    S_BASKET_ROTATE_SPEED_RIGHT_SLOW = 0.47d,
+                    S_BASKET_ROTATE_SPEED_RIGHT_FAST = 0.45d,
                     S_CLIMBERS_DEPOSIT_SPEED    = 0.02d;
 
     // servo speeds
@@ -312,10 +313,10 @@ public class Test extends OpMode {
                 // basket tilt control block
                 if (gamepad2.b) {
                     S_basketTiltPos = S_BASKET_TILT_POS_RIGHT;
-                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT;
+                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT_FAST;
                 } else if (gamepad2.x) {
                     S_basketTiltPos = S_BASKET_TILT_POS_LEFT;
-                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT;
+                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT_FAST;
                 } else if (gamepad2.a) {
                     S_basketTiltPos = S_BASKET_TILT_START_POS;
                     S_basketRotateSpeed = S_SPEED_STOP;
@@ -325,9 +326,9 @@ public class Test extends OpMode {
                 break;
             case MANUAL:
                 if(gamepad2.b) {
-                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT;
+                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT_SLOW;
                 } else if(gamepad2.x) {
-                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT;
+                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT_SLOW;
                 } else {
                     S_basketRotateSpeed = S_SPEED_STOP;
                 }
@@ -358,7 +359,7 @@ public class Test extends OpMode {
         }*/
 
         // right climber knockdown control block
-        if(gamepad2.dpad_right) {
+        /*if(gamepad2.dpad_right) {
             switch (knockDownPosR) {
                 case IN:
                     S_climbersKnockdownPosR = S_CLIMBERS_KNOCKDOWN_END_POS_R;
@@ -387,6 +388,19 @@ public class Test extends OpMode {
                 default:
                     break;
             }
+        }*/
+        if(gamepad2.dpad_right) {
+            S_climbersKnockdownPosR = S_CLIMBERS_KNOCKDOWN_END_POS_R;
+        }
+        if(gamepad2.dpad_left) {
+            S_climbersKnockdownPosL = S_CLIMBERS_KNOCKDOWN_END_POS_L;
+        }
+        if(gamepad2.dpad_up) {
+            S_climbersKnockdownPosR = S_CLIMBERS_KNOCKDOWN_END_POS_R;
+            S_climbersKnockdownPosL = S_CLIMBERS_KNOCKDOWN_END_POS_L;
+        }else if(gamepad2.dpad_down) {
+            S_climbersKnockdownPosR = S_CLIMBERS_KNOCKDOWN_START_POS_R;
+            S_climbersKnockdownPosL = S_CLIMBERS_KNOCKDOWN_START_POS_L;
         }
 
         /*
@@ -424,6 +438,8 @@ public class Test extends OpMode {
         } else if(isBlue()) {
             telemetry.addData("It's blue!", ":(");
         }
+        telemetry.addData("Control mode", basketMode);
+
     }
     @Override
     public void stop() {
