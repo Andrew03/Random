@@ -24,7 +24,7 @@ public class TestAuton extends OpMode {
             M_lift      = null; // lift motor
 
     // servo declarations
-    Servo S_climbersKnockdownR    = null, // right servo that knocks down climbers
+    Servo   S_climbersKnockdownR    = null, // right servo that knocks down climbers
             S_climbersKnockdownL    = null, // left servo that knocks down climbers
             S_climbersDeposit       = null, // servo that deposits climbers
             S_basketRotate          = null, // right servo on the basket
@@ -33,30 +33,30 @@ public class TestAuton extends OpMode {
             S_buttonPusher          = null;
     // all of the important constants
     final double    STOP                   = 0.0d,
-            MAX_POWER              = 1.0d;
+                    MAX_POWER              = 1.0d;
     final int       TICKS_PER_REVOLUTION   = 1120;
 
     // all of the constant motor powers
     final double    PICKUP_POWER    = 0.8d,
-            LIFT_POWER      = 1.0d;
+                    LIFT_POWER      = 1.0d;
 
     // all of the starting/open servo positions
     final double    S_CLIMBERS_KNOCKDOWN_START_POS_R    = Servo.MIN_POSITION,
-            S_CLIMBERS_KNOCKDOWN_START_POS_L    = Servo.MAX_POSITION,
-            S_CLIMBERS_DEPOSIT_START_POS        = 0.90d,
-            S_BASKET_ROTATE_START_POS           = 0.37d,
-            S_BASKET_TILT_START_POS             = 0.875d,
-            S_BASKET_RELEASE_START_POS          = 0.34d,
-            S_BUTTON_PUSHER_START_POS           = Servo.MIN_POSITION;
+                    S_CLIMBERS_KNOCKDOWN_START_POS_L    = Servo.MAX_POSITION,
+                    S_CLIMBERS_DEPOSIT_START_POS        = 0.90d,
+                    S_BASKET_ROTATE_START_POS           = 0.37d,
+                    S_BASKET_TILT_START_POS             = 0.875d,
+                    S_BASKET_RELEASE_START_POS          = 0.34d,
+                    S_BUTTON_PUSHER_START_POS           = Servo.MIN_POSITION;
 
 
     // all of the ending/close servo positions
     final double    S_CLIMBERS_KNOCKDOWN_END_POS_R      = 0.494d,
-            S_CLIMBERS_KNOCKDOWN_END_POS_L      = Servo.MIN_POSITION,
-            S_CLIMBERS_DEPOSIT_END_POS          = Servo.MIN_POSITION,
-            S_BASKET_ROTATE_END_POS             = Servo.MAX_POSITION,
-            S_BASKET_RELEASE_END_POS            = Servo.MAX_POSITION,
-            S_BUTTON_PUSHER_END_POS             = 0.141d;
+                    S_CLIMBERS_KNOCKDOWN_END_POS_L      = Servo.MIN_POSITION,
+                    S_CLIMBERS_DEPOSIT_END_POS          = Servo.MIN_POSITION,
+                    S_BASKET_ROTATE_END_POS             = Servo.MAX_POSITION,
+                    S_BASKET_RELEASE_END_POS            = Servo.MAX_POSITION,
+                    S_BUTTON_PUSHER_END_POS             = 0.141d;
 
     // motor powers
     double  M_drivePowerR = STOP,

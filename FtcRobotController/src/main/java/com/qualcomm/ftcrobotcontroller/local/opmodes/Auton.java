@@ -324,7 +324,7 @@ public class Auton extends LinearOpMode {
     }
 
     public int[] setTurnTarget(double degrees) {
-        final double DEGREES_TO_TICKS = 11.1d;
+        final double DEGREES_TO_TICKS = 12.2d;
         DcMotor[] motors = {M_driveFR, M_driveFL, M_driveBR, M_driveBR};
         int[] targets = new int[2];
         //targets[0] = (int)((motors[0].getCurrentPosition() + motors[2].getCurrentPosition()) / 2 - degrees * DEGREES_TO_TICKS);
