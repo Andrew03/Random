@@ -28,38 +28,38 @@ public class Test extends OpMode {
             M_lift = null; // lift motor
 
     // servo declarations
-    Servo S_climbersKnockdownR = null, // right servo that knocks down climbers
-            S_climbersKnockdownL = null, // left servo that knocks down climbers
-            S_climbersDeposit = null, // servo that deposits climbers
-            S_basketRotate = null, // right servo on the basket
-            S_basketRelease = null, // left servo on the basket
-            S_basketTilt = null; // front left servo of the pickup
+    Servo   S_climbersKnockdownR    = null, // right servo that knocks down climbers
+            S_climbersKnockdownL    = null, // left servo that knocks down climbers
+            S_climbersDeposit       = null, // servo that deposits climbers
+            S_basketRotate          = null, // right servo on the basket
+            S_basketRelease         = null, // left servo on the basket
+            S_basketTilt            = null; // front left servo of the pickup
 
     // sensor declarations
     ColorSensor colorSensor = null; // color sensor
 
     // all of the important constants
-    final double    STOP = 0.0d,
-                    MAX_POWER = 1.0d;
-    final int       TICKS_PER_REVOLUTION = 1120;
+    final double    STOP                    = 0.0d,
+                    MAX_POWER               = 1.0d;
+    final int       TICKS_PER_REVOLUTION    = 1120;
 
     // all of the constant motor powers
-    final double    PICKUP_POWER = 0.65d,
-                    LIFT_POWER = 1.0d,
-                    CLAMP_POWER = 0.5d;
+    final double    PICKUP_POWER    = 0.65d,
+                    LIFT_POWER      = 1.0d,
+                    CLAMP_POWER     = 0.5d;
 
     // all of the starting/open servo positions
     final double    S_CLIMBERS_KNOCKDOWN_START_POS_R    = Servo.MIN_POSITION,
                     S_CLIMBERS_KNOCKDOWN_START_POS_L    = Servo.MAX_POSITION,
                     S_CLIMBERS_DEPOSIT_START_POS        = 0.635d,
                     S_BASKET_ROTATE_START_POS           = 0.37d,
-                    S_BASKET_TILT_START_POS             = 0.18d,
+                    S_BASKET_TILT_START_POS             = 0.847d,
                     S_BASKET_RELEASE_START_POS          = 0.34d,
                     S_BUTTON_PUSHER_START_POS           = Servo.MIN_POSITION;
 
 
     // all of the ending/close servo positions
-    final double    S_CLIMBERS_KNOCKDOWN_END_POS_R     = 0.494d,
+    final double    S_CLIMBERS_KNOCKDOWN_END_POS_R      = 0.494d,
                     S_CLIMBERS_KNOCKDOWN_END_POS_L      = Servo.MIN_POSITION,
                     S_CLIMBERS_DEPOSIT_END_POS          = Servo.MIN_POSITION,
                     S_BASKET_ROTATE_END_POS             = Servo.MAX_POSITION,
@@ -67,7 +67,7 @@ public class Test extends OpMode {
                     S_BUTTON_PUSHER_END_POS             = Servo.MIN_POSITION;
 
     // special pos for tilt servo
-    final double    S_BASKET_TILT_POS_RIGHT     = Servo.MIN_POSITION,
+    final double    S_BASKET_TILT_POS_RIGHT     = 0.290d,
                     S_BASKET_TILT_POS_LEFT      = Servo.MAX_POSITION,
                     S_BASKET_ROTATE_POS_RIGHT   = Servo.MAX_POSITION,
                     S_BASKET_ROTATE_POS_LEFT    = Servo.MIN_POSITION;
@@ -93,11 +93,12 @@ public class Test extends OpMode {
                     S_BASKET_TILT_SPEED_DOWN    = 0.55d,
                     S_SPEED_STOP                = 0.5d,
                     S_BASKET_ROTATE_SPEED_LEFT  = 0.55d,
-                    S_BASKET_ROTATE_SPEED_RIGHT = 0.45d,
+                    S_BASKET_ROTATE_SPEED_LEFT_FAST = 0.57d,
+                    S_BASKET_ROTATE_SPEED_RIGHT = 0.47d,
                     S_CLIMBERS_DEPOSIT_SPEED    = 0.02d;
 
     // servo speeds
-    double  S_basketTiltSpeed = S_SPEED_STOP,
+    double  S_basketTiltSpeed   = S_SPEED_STOP,
             S_basketRotateSpeed = S_SPEED_STOP;
 
     // PID Threads
@@ -306,43 +307,40 @@ public class Test extends OpMode {
             }
         }
 
-        /*
         switch (basketMode) {
             case AUTO:
                 // basket tilt control block
                 if (gamepad2.b) {
                     S_basketTiltPos = S_BASKET_TILT_POS_RIGHT;
-                    S_basketRotateSpeed = setServoSpeed(S_basketRotate, S_BASKET_ROTATE_POS_RIGHT, S_basketRotateSpeed);
-                    S_basketRotatePos = S_basketRotate.getPosition();
+                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT;
                 } else if (gamepad2.x) {
                     S_basketTiltPos = S_BASKET_TILT_POS_LEFT;
-                    S_basketRotateSpeed = setServoSpeed(S_basketRotate, S_BASKET_ROTATE_POS_LEFT, S_basketRotateSpeed);
-                    S_basketRotatePos = S_basketRotate.getPosition();
+                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT;
                 } else if (gamepad2.a) {
                     S_basketTiltPos = S_BASKET_TILT_START_POS;
-                    S_basketRotateSpeed = setServoSpeed(S_basketRotate, S_BASKET_ROTATE_START_POS, S_basketRotateSpeed);
-                    S_basketRotatePos = S_basketRotate.getPosition();
+                    S_basketRotateSpeed = S_SPEED_STOP;
                 } else {
-                    S_basketRotateSpeed = setServoSpeed(S_basketRotate, S_basketRotatePos, S_basketRotateSpeed);
+                    S_basketRotateSpeed = S_SPEED_STOP;
                 }
                 break;
             case MANUAL:
                 if(gamepad2.b) {
-                    S_basketRotatePos += 0.01d;
+                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT;
                 } else if(gamepad2.x) {
-                    S_basketRotatePos -= 0.01d;
+                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT;
+                } else {
+                    S_basketRotateSpeed = S_SPEED_STOP;
                 }
                 if(gamepad2.y && S_basketTiltPos < 0.98d) {
                     S_basketTiltPos += 0.01d;
                 } else if(gamepad2.a && S_basketTiltPos > 0.02d) {
                     S_basketTiltPos -= 0.01d;
                 }
-                S_basketRotateSpeed = setServoSpeed(S_basketRotate, S_basketRotatePos, S_basketRotateSpeed);
                 break;
             default:
                 break;
         }
-        */
+
 
         /*// basket rotate control block
         if(gamepad2.dpad_right) {

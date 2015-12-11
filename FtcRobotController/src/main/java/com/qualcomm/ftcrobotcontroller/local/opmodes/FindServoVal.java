@@ -3,6 +3,7 @@ package com.qualcomm.ftcrobotcontroller.local.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 /**
  * Created by Andrew on 12/9/2015.
@@ -18,6 +19,15 @@ public class FindServoVal extends OpMode {
             S_basketRelease         = null, // left servo on the basket
             S_basketTilt            = null; // front left servo of the pickup
     Servo[] servos;
+
+    private double setServoSpeed(Servo servo, double targetPos, double power) {
+        if (servo.getPosition() > targetPos) {
+            power -= 0.01d;
+        } else {
+            power += 0.01d;
+        }
+        return Range.clip(power, 0.0d, 1.0d);
+    }
 
     @Override
     public void init() {
@@ -42,7 +52,8 @@ public class FindServoVal extends OpMode {
             S_climbersKnockdownL.setPosition(S_climbersKnockdownL.getPosition() + 0.01d);
             S_climbersDeposit.setPosition(S_climbersDeposit.getPosition() + 0.01d);
             S_buttonPusher.setPosition(S_buttonPusher.getPosition() + 0.01d);
-            S_basketRotate.setPosition(0.5d);
+            //S_basketRotate.setPosition(0.5d);
+
             S_basketRelease.setPosition(S_basketRelease.getPosition() + 0.01d);
             S_basketTilt.setPosition(S_basketTilt.getPosition() + 0.01d);
         } else if(gamepad1.start) {
@@ -53,6 +64,13 @@ public class FindServoVal extends OpMode {
             S_basketRotate.setPosition(0.5d);
             S_basketRelease.setPosition(0.0d);
             S_basketTilt.setPosition(0.0d);
+        }
+        if(gamepad1.b) {
+            S_basketRotate.setPosition(0.55d);
+        } else if(gamepad1.x) {
+            S_basketRotate.setPosition(0.47d);
+        } else {
+            S_basketRotate.setPosition(0.5d);
         }
         telemetry.addData("Servo S_climbersKnockdownR: Position: ", S_climbersKnockdownR.getPosition());
         telemetry.addData("Servo S_climbersKnockdownL: Position: ", S_climbersKnockdownL.getPosition());
