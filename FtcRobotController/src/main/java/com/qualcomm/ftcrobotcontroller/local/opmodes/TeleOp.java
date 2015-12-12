@@ -355,6 +355,7 @@ public class TeleOp extends OpMode {
                 } else if(gamepad1.a) {
                     S_climbersDepositDropPos = S_climbers_DEPOSIT_DROP_START_POS;
                     S_climbersDepositRotatePos = S_CLIMBERS_DEPOSIT_ROTATE_START_POS;
+                    isDepositSet = false;
                 }
                 break;
             default:
