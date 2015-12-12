@@ -60,13 +60,14 @@ public class TeleOp extends OpMode {
             M_driveFL = null, // front left drive motor
             M_driveBR = null, // back right drive motor
             M_driveBL = null, // back left drive motor
-            M_pickup = null, // pickup motor
-            M_lift = null; // lift motor
+            M_pickup    = null, // pickup motor
+            M_lift    = null; // lift motor
 
     // servo declarations
     Servo   S_climbersKnockdownR    = null, // right servo that knocks down climbers
             S_climbersKnockdownL    = null, // left servo that knocks down climbers
-            S_climbersDeposit       = null, // servo that deposits climbers
+            S_climbersDepositRotate = null, // servo that rotates climbers
+            S_climbersDepositDrop   = null, // servo that drops climbers
             S_basketRotate          = null, // servo that controls basket rotation
             S_basketRelease         = null, // servo that releases blocks
             S_basketTilt            = null; // servo that controls tilt
@@ -77,28 +78,27 @@ public class TeleOp extends OpMode {
 
     // all of the constant motor powers
     final double    PICKUP_POWER    = 0.65d,
-                    LIFT_POWER      = 1.0d;
+                    LIFT_POWER_FAST      = 1.0d,
+                    LIFT_POWER_SLOW      = 1.0d;
 
     // all of the starting/open servo positions
     final double    S_CLIMBERS_KNOCKDOWN_START_POS_R    = Servo.MIN_POSITION,
                     S_CLIMBERS_KNOCKDOWN_START_POS_L    = Servo.MAX_POSITION,
-                    S_CLIMBERS_DEPOSIT_START_POS        = 0.635d,
-                    S_BASKET_ROTATE_START_POS           = 0.37d,
+                    S_CLIMBERS_DEPOSIT_ROTATE_START_POS = 0.635d,
+                    S_climbers_DEPOSIT_DROP_START_POS   = 0.0d,
                     S_BASKET_TILT_START_POS             = 0.875d,
                     S_BASKET_RELEASE_START_POS          = 0.34d;
 
     // all of the ending/close servo positions
     final double    S_CLIMBERS_KNOCKDOWN_END_POS_R      = 0.494d,
                     S_CLIMBERS_KNOCKDOWN_END_POS_L      = Servo.MIN_POSITION,
-                    S_CLIMBERS_DEPOSIT_END_POS          = Servo.MIN_POSITION,
-                    S_BASKET_ROTATE_END_POS             = Servo.MAX_POSITION,
+                    S_CLIMBERS_DEPOSIT_ROTATE_END_POS   = 0.635d,
+                    S_climbers_DEPOSIT_DROP_END_POS     = 0.0d,
                     S_BASKET_RELEASE_END_POS            = Servo.MAX_POSITION;
 
     // special pos for tilt servo
     final double    S_BASKET_TILT_POS_RIGHT     = 0.290d,
-                    S_BASKET_TILT_POS_LEFT      = Servo.MAX_POSITION,
-                    S_BASKET_ROTATE_POS_RIGHT   = Servo.MAX_POSITION,
-                    S_BASKET_ROTATE_POS_LEFT    = Servo.MIN_POSITION;
+                    S_BASKET_TILT_POS_LEFT      = Servo.MAX_POSITION;
 
     // motor powers
     double  M_drivePowerR = STOP,
@@ -107,18 +107,19 @@ public class TeleOp extends OpMode {
             M_liftPower   = STOP;
 
     // servo positions
-    double  S_climbersKnockdownPosR  = S_CLIMBERS_KNOCKDOWN_START_POS_R,
-            S_climbersKnockdownPosL  = S_CLIMBERS_KNOCKDOWN_START_POS_L,
-            S_climbersDepositPos     = S_CLIMBERS_DEPOSIT_START_POS,
-            S_basketTiltPos          = S_BASKET_TILT_START_POS,
-            S_basketReleasePos       = S_BASKET_RELEASE_START_POS;
+    double  S_climbersKnockdownPosR     = S_CLIMBERS_KNOCKDOWN_START_POS_R,
+            S_climbersKnockdownPosL     = S_CLIMBERS_KNOCKDOWN_START_POS_L,
+            S_climbersDepositRotatePos  = S_CLIMBERS_DEPOSIT_ROTATE_START_POS,
+            S_climbersDepositDropPos    = S_climbers_DEPOSIT_DROP_START_POS,
+            S_basketTiltPos             = S_BASKET_TILT_START_POS,
+            S_basketReleasePos          = S_BASKET_RELEASE_START_POS;
 
     // servo powers
-    final double    S_SPEED_STOP                = 0.5d,
-                    S_BASKET_ROTATE_SPEED_LEFT_SLOW  = 0.56d,
-                    S_BASKET_ROTATE_SPEED_LEFT_FAST = 0.58d,
-                    S_BASKET_ROTATE_SPEED_RIGHT_SLOW = 0.47d,
-                    S_BASKET_ROTATE_SPEED_RIGHT_FAST = 0.45d;
+    final double    S_SPEED_STOP                        = 0.5d,
+                    S_BASKET_ROTATE_SPEED_LEFT_SLOW     = 0.56d,
+                    S_BASKET_ROTATE_SPEED_LEFT_FAST     = 0.58d,
+                    S_BASKET_ROTATE_SPEED_RIGHT_SLOW    = 0.47d,
+                    S_BASKET_ROTATE_SPEED_RIGHT_FAST    = 0.45d;
 
     // servo speeds
     double  S_basketRotateSpeed = S_SPEED_STOP;
@@ -127,6 +128,15 @@ public class TeleOp extends OpMode {
         AUTO,
         MANUAL
     } BasketMode basketMode = BasketMode.AUTO;
+
+    enum P1Mode {
+        P1,
+        P2
+    } P1Mode p1Mode = P1Mode.P1;
+
+    boolean isP1Tilt    = false,
+            isP1Rotate  = false;
+    boolean isDepositSet = false;
 
     private final float C_STICK_TOP_THRESHOLD = 0.85f;
     private double convertStick(float controllerValue) {   return Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD), -1.0d, 1.0d); }
@@ -143,12 +153,13 @@ public class TeleOp extends OpMode {
 
     // maps servo variables to their hardware counterparts
     private void setServos() {
-        S_climbersKnockdownR   = hardwareMap.servo.get("S_climbersKnockdownR");
-        S_climbersKnockdownL   = hardwareMap.servo.get("S_climbersKnockdownL");
-        S_climbersDeposit      = hardwareMap.servo.get("S_climbersDeposit");
-        S_basketRotate         = hardwareMap.servo.get("S_basketRotate");
-        S_basketRelease        = hardwareMap.servo.get("S_basketRelease");
-        S_basketTilt           = hardwareMap.servo.get("S_basketTilt");
+        S_climbersKnockdownR    = hardwareMap.servo.get("S_climbersKnockdownR");
+        S_climbersKnockdownL    = hardwareMap.servo.get("S_climbersKnockdownL");
+        S_climbersDepositRotate = hardwareMap.servo.get("S_climbersDepositRotate");
+        S_climbersDepositDrop   = hardwareMap.servo.get("S_climbersDepositDrop");
+        S_basketRotate          = hardwareMap.servo.get("S_basketRotate");
+        S_basketRelease         = hardwareMap.servo.get("S_basketRelease");
+        S_basketTilt            = hardwareMap.servo.get("S_basketTilt");
     }
 
     // configures the motors to desired configurations
@@ -178,78 +189,57 @@ public class TeleOp extends OpMode {
     public void loop() {
         ///////////////////////////////////////// Controller 1 controls ///////////////////////////////////////////////
         // driving control block
-        M_drivePowerR = convertStick(-gamepad1.right_stick_y);
-        M_drivePowerL = convertStick(-gamepad1.left_stick_y);
-
-        // pickup control block
-        if (gamepad1.right_bumper) {
-            M_pickupPower = PICKUP_POWER;
-        } else if (gamepad1.left_bumper) {
-            M_pickupPower = -PICKUP_POWER;
+        if(gamepad1.right_trigger > 0.0d) {
+            M_drivePowerR = gamepad1.right_trigger;
+            M_drivePowerL = gamepad1.right_trigger;
+        } else if(gamepad1.left_trigger > 0.0d) {
+            M_drivePowerR = -gamepad1.left_trigger;
+            M_drivePowerL = -gamepad1.left_trigger;
         } else {
-            M_pickupPower = STOP;
+            M_drivePowerR = STOP;
+            M_drivePowerL = STOP;
         }
-
-        // lift control block
-        if(gamepad1.right_trigger > 0.0f) {
-            M_liftPower = LIFT_POWER;
-        } else if(gamepad1.left_trigger > 0.0f) {
-            M_liftPower = -LIFT_POWER;
-        } else {
-            M_liftPower = STOP;
-        }
-
-        // basket release control block
-        if(gamepad1.a) {
-            S_basketReleasePos = S_BASKET_RELEASE_END_POS;
-        } else if(gamepad1.b) {
-            S_basketReleasePos = S_BASKET_RELEASE_START_POS;
-        }
-
-        ///////////////////////////////////////// Controller 2 controls ///////////////////////////////////////////////
-        // toggle basket control mode
-        if(gamepad2.start) {
-            if(basketMode == BasketMode.AUTO) {
-                basketMode = BasketMode.MANUAL;
-            } else {
-                basketMode = BasketMode.AUTO;
-            }
+        if(gamepad1.b) {
+            M_drivePowerR *= -1.0d;
+        } else if(gamepad1.x) {
+            M_drivePowerL *= -1.0d;
         }
 
         // basket control block
-        switch (basketMode) {
-            case AUTO:
-                if (gamepad2.b) {
-                    S_basketTiltPos = S_BASKET_TILT_POS_RIGHT;
-                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT_FAST;
-                } else if (gamepad2.x) {
-                    S_basketTiltPos = S_BASKET_TILT_POS_LEFT;
-                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT_FAST;
-                } else if (gamepad2.a) {
-                    S_basketTiltPos = S_BASKET_TILT_START_POS;
-                    S_basketRotateSpeed = S_SPEED_STOP;
-                } else {
-                    S_basketRotateSpeed = S_SPEED_STOP;
-                }
-                break;
-            case MANUAL:
-                if(gamepad2.b) {
-                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT_SLOW;
-                } else if(gamepad2.x) {
-                    S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT_SLOW;
-                } else {
-                    S_basketRotateSpeed = S_SPEED_STOP;
-                }
-                if(gamepad2.y && S_basketTiltPos < 0.98d) {
-                    S_basketTiltPos += 0.01d;
-                } else if(gamepad2.a && S_basketTiltPos > 0.02d) {
-                    S_basketTiltPos -= 0.01d;
-                }
-                break;
-            default:
-                break;
+        if(gamepad1.b) {
+            S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT_SLOW;
+            isP1Rotate = true;
+        } else if(gamepad1.x) {
+            S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT_SLOW;
+            isP1Rotate = true;
+        } else {
+            S_basketRotateSpeed = S_SPEED_STOP;
+            isP1Rotate = false;
+        }
+        if(gamepad1.y && S_basketTiltPos < 0.98d) {
+            S_basketTiltPos += 0.01d;
+            isP1Tilt = true;
+        } else if(gamepad1.a && S_basketTiltPos > 0.02d) {
+            S_basketTiltPos -= 0.01d;
+            isP1Tilt = true;
+        } else {
+            isP1Tilt = false;
         }
 
+        // basket reset block
+        if(gamepad1.start) {
+            S_basketTiltPos = S_BASKET_TILT_START_POS;
+            S_basketRotateSpeed = S_SPEED_STOP;
+        }
+
+        // selecting player 1 mode
+        if(gamepad1.right_stick_y > 0.5d) {
+            p1Mode = P1Mode.P1;
+        } else if(gamepad1.left_stick_y > 0.5d) {
+            p1Mode = P1Mode.P2;
+        }
+
+        ///////////////////////////////////////// Controller 2 controls ///////////////////////////////////////////////
         // climber knockdown control block
         if(gamepad2.dpad_right) {
             S_climbersKnockdownPosR = S_CLIMBERS_KNOCKDOWN_END_POS_R;
@@ -265,6 +255,112 @@ public class TeleOp extends OpMode {
             S_climbersKnockdownPosL = S_CLIMBERS_KNOCKDOWN_START_POS_L;
         }
 
+        // toggle basket control mode
+        if(gamepad2.right_stick_y > 0.5d) {
+            basketMode = BasketMode.MANUAL;
+        } else if(gamepad2.left_stick_y > 0.5d) {
+            basketMode = BasketMode.AUTO;
+        }
+
+        // basket control block
+        switch (basketMode) {
+            case AUTO:
+                if(!isP1Rotate && !isP1Rotate) {
+                    if (gamepad2.b) {
+                        S_basketTiltPos = S_BASKET_TILT_POS_RIGHT;
+                        S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT_FAST;
+                    } else if (gamepad2.x) {
+                        S_basketTiltPos = S_BASKET_TILT_POS_LEFT;
+                        S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT_FAST;
+                    } else if (gamepad2.a) {
+                        S_basketTiltPos = S_BASKET_TILT_START_POS;
+                        S_basketRotateSpeed = S_SPEED_STOP;
+                    } else {
+                        S_basketRotateSpeed = S_SPEED_STOP;
+                    }
+                }
+                break;
+            case MANUAL:
+                if(!isP1Rotate) {
+                    if (gamepad2.b) {
+                        S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_RIGHT_SLOW;
+                    } else if (gamepad2.x) {
+                        S_basketRotateSpeed = S_BASKET_ROTATE_SPEED_LEFT_SLOW;
+                    } else {
+                        S_basketRotateSpeed = S_SPEED_STOP;
+                    }
+                }
+                if(!isP1Tilt) {
+                    if (gamepad2.y && S_basketTiltPos < 0.98d) {
+                        S_basketTiltPos += 0.01d;
+                    } else if (gamepad2.a && S_basketTiltPos > 0.02d) {
+                        S_basketTiltPos -= 0.01d;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
+        ///////////////////////////////////// variable commands /////////////////////////////////
+        switch (p1Mode) {
+            //////////////////////////////// P1 mode commands ////////////////////////////////////////////
+            case P1:
+                // pickup control block
+                if (gamepad1.right_bumper) {
+                    M_pickupPower = PICKUP_POWER;
+                } else if (gamepad1.left_bumper) {
+                    M_pickupPower = -PICKUP_POWER;
+                } else {
+                    M_pickupPower = STOP;
+                }
+
+                // basket release control block
+                if(gamepad1.y) {
+                    S_basketReleasePos = S_BASKET_RELEASE_END_POS;
+                } else if(gamepad1.a) {
+                    S_basketReleasePos = S_BASKET_RELEASE_START_POS;
+                }
+
+                // lift control block
+                if(gamepad2.right_trigger > 0.0d) {
+                    M_liftPower = LIFT_POWER_FAST;
+                } else if(gamepad2.left_trigger > 0.0d) {
+                    M_liftPower = -LIFT_POWER_FAST;
+                } else if(gamepad2.right_bumper) {
+                    M_liftPower = LIFT_POWER_SLOW;
+                } else if(gamepad2.left_bumper) {
+                    M_liftPower = -LIFT_POWER_SLOW;
+                } else {
+                    M_liftPower = STOP;
+                }
+
+                break;
+            //////////////////////////////// P2 mode commands ////////////////////////////////////////////
+            case P2:
+                // lift control block
+                if(gamepad1.right_bumper) {
+                    M_liftPower = LIFT_POWER_SLOW;
+                } else if(gamepad1.left_bumper) {
+                    M_liftPower = -LIFT_POWER_SLOW;
+                }
+                // basket release control block
+                if(gamepad1.y) {
+                    if(!isDepositSet) {
+                        S_climbersDepositRotatePos = S_CLIMBERS_DEPOSIT_ROTATE_END_POS;
+                        isDepositSet = true;
+                    } else {
+                        S_climbersDepositDropPos = S_climbers_DEPOSIT_DROP_END_POS;
+                    }
+                } else if(gamepad1.a) {
+                    S_climbersDepositDropPos = S_climbers_DEPOSIT_DROP_START_POS;
+                    S_climbersDepositRotatePos = S_CLIMBERS_DEPOSIT_ROTATE_START_POS;
+                }
+                break;
+            default:
+                break;
+        }
+
         // updates all the motor powers
         M_driveBR.setPower(M_drivePowerR);
         M_driveBL.setPower(M_drivePowerL);
@@ -276,7 +372,8 @@ public class TeleOp extends OpMode {
         // updates all the servo positions
         S_climbersKnockdownR.setPosition(S_climbersKnockdownPosR);
         S_climbersKnockdownL.setPosition(S_climbersKnockdownPosL);
-        S_climbersDeposit.setPosition(S_climbersDepositPos);
+        S_climbersDepositRotate.setPosition(S_climbersDepositRotatePos);
+        S_climbersDepositDrop.setPosition(S_climbersDepositDropPos);
         S_basketRotate.setPosition(S_basketRotateSpeed);
         S_basketRelease.setPosition(S_basketReleasePos);
         S_basketTilt.setPosition(S_basketTiltPos);
@@ -297,7 +394,8 @@ public class TeleOp extends OpMode {
 
         S_climbersKnockdownR.setPosition(S_CLIMBERS_KNOCKDOWN_START_POS_R);
         S_climbersKnockdownL.setPosition(S_CLIMBERS_KNOCKDOWN_START_POS_L);
-        S_climbersDeposit.setPosition(S_CLIMBERS_DEPOSIT_START_POS);
+        S_climbersDepositRotate.setPosition(S_CLIMBERS_DEPOSIT_ROTATE_START_POS);
+        S_climbersDepositDrop.setPosition(S_climbers_DEPOSIT_DROP_START_POS);
         S_basketRotate.setPosition(S_SPEED_STOP);
         S_basketRelease.setPosition(S_BASKET_RELEASE_START_POS);
         S_basketTilt.setPosition(S_BASKET_TILT_START_POS);
