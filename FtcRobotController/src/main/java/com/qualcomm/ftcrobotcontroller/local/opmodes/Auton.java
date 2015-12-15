@@ -4,6 +4,7 @@ import com.qualcomm.ftcrobotcontroller.local.lib.Drive;
 import com.qualcomm.ftcrobotcontroller.local.lib.PID;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -15,6 +16,10 @@ import java.util.Arrays;
 /**
  * Created by Andrew on 10/31/2015.
  */
+
+// button push extends out too far
+// rotate deposit too heavy, wont't move
+
 public class Auton extends LinearOpMode {
 
     // motor declarations
@@ -28,11 +33,16 @@ public class Auton extends LinearOpMode {
     // servo declarations
     Servo   S_climbersKnockdownR    = null, // right servo that knocks down climbers
             S_climbersKnockdownL    = null, // left servo that knocks down climbers
-            S_climbersDeposit       = null, // servo that deposits climbers
-            S_basketRotate          = null, // right servo on the basket
-            S_basketRelease         = null, // left servo on the basket
-            S_basketTilt            = null, // front left servo of the pickup
-            S_buttonPusher          = null;
+            S_climbersDepositRotate = null, // servo that rotates climbers
+            S_climbersDepositDrop   = null, // servo that drops climbers
+            S_basketRotate          = null, // servo that controls basket rotation
+            S_basketRelease         = null, // servo that releases blocks
+            S_basketTilt            = null, // servo that controls tilt
+            S_buttonPusher          = null; // servo that pushes button
+
+    // sensor declarations
+    ColorSensor colorSensor = null; // color sensor
+
     // all of the important constants
     final double    STOP                   = 0.0d,
                     MAX_POWER              = 1.0d;
@@ -45,20 +55,19 @@ public class Auton extends LinearOpMode {
     // all of the starting/open servo positions
     final double    S_CLIMBERS_KNOCKDOWN_START_POS_R    = Servo.MIN_POSITION,
                     S_CLIMBERS_KNOCKDOWN_START_POS_L    = Servo.MAX_POSITION,
-                    S_CLIMBERS_DEPOSIT_START_POS        = 0.90d,
-                    S_BASKET_ROTATE_START_POS           = 0.37d,
+                    S_CLIMBERS_DEPOSIT_ROTATE_START_POS = Servo.MIN_POSITION,
+                    S_climbers_DEPOSIT_DROP_START_POS   = Servo.MAX_POSITION,
                     S_BASKET_TILT_START_POS             = 0.875d,
                     S_BASKET_RELEASE_START_POS          = 0.34d,
                     S_BUTTON_PUSHER_START_POS           = Servo.MIN_POSITION;
 
-
     // all of the ending/close servo positions
     final double    S_CLIMBERS_KNOCKDOWN_END_POS_R      = 0.494d,
                     S_CLIMBERS_KNOCKDOWN_END_POS_L      = Servo.MIN_POSITION,
-                    S_CLIMBERS_DEPOSIT_END_POS          = Servo.MIN_POSITION,
-                    S_BASKET_ROTATE_END_POS             = Servo.MAX_POSITION,
+                    S_CLIMBERS_DEPOSIT_ROTATE_END_POS   = 0.549d,
+                    S_climbers_DEPOSIT_DROP_END_POS     = Servo.MIN_POSITION,
                     S_BASKET_RELEASE_END_POS            = Servo.MAX_POSITION,
-                    S_BUTTON_PUSHER_END_POS             = 0.141d;
+                    S_BUTTON_PUSHER_END_POS             = 0.496d;
 
     // motor powers
     double  M_drivePowerR = STOP,
@@ -70,13 +79,13 @@ public class Auton extends LinearOpMode {
     double[] drivePowers;
 
     // servo positions
-    double  S_climbersKnockdownPosR  = S_CLIMBERS_KNOCKDOWN_START_POS_R,
-            S_climbersKnockdownPosL  = S_CLIMBERS_KNOCKDOWN_START_POS_L,
-            S_climbersDepositPos     = S_CLIMBERS_DEPOSIT_START_POS,
-            S_basketRotatePos        = S_BASKET_ROTATE_START_POS,
-            S_basketReleasePos       = S_BASKET_RELEASE_START_POS,
-            S_basketTiltPos          = S_BASKET_TILT_START_POS,
-            S_buttonPusherPos        = S_BUTTON_PUSHER_START_POS;
+    double  S_climbersKnockdownPosR     = S_CLIMBERS_KNOCKDOWN_START_POS_R,
+            S_climbersKnockdownPosL     = S_CLIMBERS_KNOCKDOWN_START_POS_L,
+            S_climbersDepositRotatePos  = S_CLIMBERS_DEPOSIT_ROTATE_START_POS,
+            S_climbersDepositDropPos    = S_climbers_DEPOSIT_DROP_START_POS,
+            S_basketTiltPos             = S_BASKET_TILT_START_POS,
+            S_basketReleasePos          = S_BASKET_RELEASE_START_POS,
+            S_buttonPusherPos           = S_BUTTON_PUSHER_START_POS;
 
     // function necessity delcarations
     int[] motorTargetsDrive;
@@ -94,11 +103,16 @@ public class Auton extends LinearOpMode {
         this.M_lift     = this.hardwareMap.dcMotor.get("M_lift");
 
         // mapping servo variables to their hardware counterparts
-        this.S_climbersDeposit      = this.hardwareMap.servo.get("S_climbersDeposit");
-        this.S_basketRotate         = this.hardwareMap.servo.get("S_basketRotate");
-        this.S_basketRelease        = this.hardwareMap.servo.get("S_basketRelease");
-        this.S_basketTilt           = this.hardwareMap.servo.get("S_basketTilt");
+        S_climbersKnockdownR    = hardwareMap.servo.get("S_climbersKnockdownR");
+        S_climbersKnockdownL    = hardwareMap.servo.get("S_climbersKnockdownL");
+        S_climbersDepositRotate = hardwareMap.servo.get("S_climbersDepositRotate");
+        S_climbersDepositDrop   = hardwareMap.servo.get("S_climbersDepositDrop");
+        S_basketRotate          = hardwareMap.servo.get("S_basketRotate");
+        S_basketRelease         = hardwareMap.servo.get("S_basketRelease");
+        S_basketTilt            = hardwareMap.servo.get("S_basketTilt");
+        S_buttonPusher          = hardwareMap.servo.get("S_buttonPusher");
 
+        colorSensor            = hardwareMap.colorSensor.get("S_colorSensor");
     }
 
     private void configureStuff() {
@@ -152,16 +166,20 @@ public class Auton extends LinearOpMode {
         Arrays.fill(drivePowers, 0.0d);
         waitForStart();
         clock.startTime();
+        int tempMotorPosR = 0;
+        int deltaMotorPos = 0;
+        double increment = 0.05d;
         while(opModeIsActive()) {
 
             switch (counter) {
                 case 0:
                     if(!hasBeenSet) {
-                        motorTargetsDrive = setDriveTarget(7.5d);
+                        motorTargetsDrive = setDriveTarget(19.0d);
                         hasBeenSet = true;
+                        clock.reset();
                     }
                     finished = driveForward();
-                    if(finished) {
+                    if(finished || isPastTime(1.0d)) {
                         hasBeenSet = false;
                         counter++;
                         stopDriving();
@@ -177,11 +195,12 @@ public class Auton extends LinearOpMode {
 
                 case 1:
                     if(!hasBeenSet) {
-                        motorTargetsTurn = setTurnTarget(72.0d);
+                        motorTargetsTurn = setTurnTarget(-42.0d);
                         hasBeenSet = true;
+                        clock.reset();
                     }
                     finished = turnRight();
-                    if(finished) {
+                    if(finished || isPastTime(0.6d)) {
                         hasBeenSet = false;
                         counter++;
                         stopDriving();
@@ -196,11 +215,12 @@ public class Auton extends LinearOpMode {
                     break;
                 case 2:
                     if(!hasBeenSet) {
-                        motorTargetsDrive = setDriveTarget(35.0d);
+                        motorTargetsDrive = setDriveTarget(62.0d);
                         hasBeenSet = true;
+                        clock.reset();
                     }
                     finished = driveForward();
-                    if(finished) {
+                    if(finished || isPastTime(3.0d)) {
                         hasBeenSet = false;
                         counter++;
                         stopDriving();
@@ -214,13 +234,14 @@ public class Auton extends LinearOpMode {
                     }
                     break;
                 case 3:
-                    // failed here last time
                     if(!hasBeenSet) {
-                        motorTargetsTurn = setTurnTarget(20.0d);
+                        motorTargetsTurn = setTurnTarget(42.0d);
                         hasBeenSet = true;
+                        clock.reset();
                     }
                     finished = turnRight();
-                    if(finished) {
+                    if(finished  || isPastTime(1.0d)) {
+                        tempMotorPosR = M_driveFR.getCurrentPosition();
                         hasBeenSet = false;
                         counter++;
                         stopDriving();
@@ -232,26 +253,183 @@ public class Auton extends LinearOpMode {
                             sleep(100);
                         }
                     }
+                    break;
                 case 4:
+                    if(!isRed()) {
+                        M_drivePowerR = 0.2d;
+                        M_drivePowerL = 0.2d;
+                    } else {
+                        stopDriving();
+                        deltaMotorPos = M_driveFR.getCurrentPosition() - tempMotorPosR;
+                        counter++;
+                        while(waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    }
+                    break;
+                case 5:
+
+                    if(Math.abs(S_buttonPusherPos - S_BUTTON_PUSHER_END_POS) < increment && Math.abs(S_climbersDepositRotatePos - S_CLIMBERS_DEPOSIT_ROTATE_END_POS) < increment) {
+                        counter++;
+                        while (waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    } else {
+                        if (Math.abs(S_buttonPusherPos - S_BUTTON_PUSHER_END_POS) > increment + 0.01d) {
+                            S_buttonPusherPos += increment;
+                        }
+                        if (Math.abs(S_climbersDepositRotatePos - S_CLIMBERS_DEPOSIT_ROTATE_END_POS) > increment + 0.01d) {
+                            S_climbersDepositRotatePos += increment;
+                        }
+                    }
+                    break;
+                case 6:
+                    if(Math.abs(S_climbersDepositDropPos - S_climbers_DEPOSIT_DROP_END_POS) < increment) {
+                        counter++;
+                        while (waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    } else {
+                        S_climbersDepositDropPos -= increment;
+                    }
+                    clock.reset();
+                    break;
+                case 7:
+                    if((Math.abs(S_buttonPusherPos - S_BUTTON_PUSHER_START_POS) <= increment && Math.abs(S_climbersDepositRotatePos - S_CLIMBERS_DEPOSIT_ROTATE_START_POS) <= increment && Math.abs(S_climbersDepositDropPos - S_climbers_DEPOSIT_DROP_START_POS) <= increment || isPastTime(0.5d))) {
+                        counter++;
+                        while (waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    } else {
+                        if(Math.abs(S_climbersDepositDropPos - S_climbers_DEPOSIT_DROP_START_POS) > increment + 0.01d) {
+                            S_climbersDepositDropPos += increment;
+                        }
+                        if(Math.abs(S_climbersDepositRotatePos - S_CLIMBERS_DEPOSIT_ROTATE_START_POS) > increment + 0.01d) {
+                            S_climbersDepositRotatePos -= increment;
+                        }
+                        if(Math.abs(S_buttonPusherPos - S_BUTTON_PUSHER_START_POS) > increment + 0.01d) {
+                            S_buttonPusherPos -= increment;
+                        }
+                        telemetry.addData("Drop POS", S_climbersDepositDropPos);
+                        telemetry.addData("Rotate POS", S_climbersDepositRotatePos);
+                        telemetry.addData("Push POS", S_buttonPusherPos);
+                    }
+                    break;
+                case 8:
                     if(!hasBeenSet) {
-                        motorTargetsDrive = setDriveTarget(12.5d);
+                        motorTargetsDrive = setDriveTarget(tempMotorPosR - 200 - M_driveFL.getCurrentPosition());
+                        // use delta pos
                         hasBeenSet = true;
+                        clock.reset();
                     }
                     finished = driveForward();
-                    if(finished) {
+                    if(finished || isPastTime(1.5d)) {
                         hasBeenSet = false;
                         counter++;
                         stopDriving();
-                        telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
-                        telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
-                        telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
-                        telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
-                        sleep(800);
+                        while(waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
                     }
-
+                    break;
+                case 9:
+                    if(!hasBeenSet) {
+                        motorTargetsTurn = setTurnTarget(-47.0d);
+                        hasBeenSet = true;
+                        clock.reset();
+                    }
+                    finished = turnRight();
+                    if(finished  || isPastTime(1.0d)) {
+                        tempMotorPosR = M_driveFR.getCurrentPosition();
+                        hasBeenSet = false;
+                        counter++;
+                        stopDriving();
+                        while(waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    }
+                    break;
+                case 10:
+                    if(!hasBeenSet) {
+                        motorTargetsDrive = setDriveTarget(-20.0d);
+                        hasBeenSet = true;
+                        clock.reset();
+                    }
+                    finished = driveForward();
+                    if(finished || isPastTime(1.5d)) {
+                        hasBeenSet = false;
+                        counter++;
+                        stopDriving();
+                        while(waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    }
+                    break;
+                case 11:
+                    if(!hasBeenSet) {
+                        motorTargetsTurn = setTurnTarget(90.0d);
+                        hasBeenSet = true;
+                        clock.reset();
+                    }
+                    finished = turnRight();
+                    if(finished  || isPastTime(2.0d)) {
+                        tempMotorPosR = M_driveFR.getCurrentPosition();
+                        hasBeenSet = false;
+                        counter++;
+                        stopDriving();
+                        while(waitingForClick()) {
+                            telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+                            telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+                            telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+                            telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
+                            sleep(100);
+                        }
+                    }
+                    break;
+                case 12:
+                    if(!hasBeenSet) {
+                        clock.reset();
+                        hasBeenSet = true;
+                    }
+                    M_drivePowerR = -MAX_POWER;
+                    M_drivePowerL = -MAX_POWER;
+                    if(isPastTime(2000)) {
+                        M_drivePowerR = 0;
+                        M_drivePowerL = 0;
+                        counter++;
+                    }
+                    break;
                 default:
-                    drivePowers[0] = STOP;
-                    drivePowers[1] = STOP;
+                    M_drivePowerR = STOP;
+                    M_drivePowerL = STOP;
                     this.M_pickup.setPower(STOP);
                     this.M_lift.setPower(STOP);
                     telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
@@ -262,20 +440,40 @@ public class Auton extends LinearOpMode {
                     telemetry.addData("Target L", motorTargetsDrive[1]);
                     break;
             }
-            M_drivePowerR = drivePowers[0];
-            M_drivePowerL = drivePowers[1];
+            //M_drivePowerR = drivePowers[0];
+            //M_drivePowerL = drivePowers[1];
             M_driveFR.setPower(M_drivePowerR);
             M_driveFL.setPower(M_drivePowerL);
             M_driveBR.setPower(M_drivePowerR);
             M_driveBL.setPower(M_drivePowerL);
+
+            S_climbersDepositRotate.setPosition(S_climbersDepositRotatePos);
+            S_climbersDepositDrop.setPosition(S_climbersDepositDropPos);
+            S_buttonPusher.setPosition(S_buttonPusherPos);
+            S_climbersKnockdownL.setPosition(S_climbersKnockdownPosL);
+
             telemetry.addData("Counter", counter);
-            telemetry.addData("Supposed Power R", drivePowers[0]);
-            telemetry.addData("Supposed Power L", drivePowers[1]);
+            telemetry.addData("Supposed Power R", M_drivePowerR);
+            telemetry.addData("Supposed Power L", M_drivePowerL);
+            telemetry.addData("time", clock.time());
+            //waitOneFullHardwareCycle();
             sleep(20);
         }
     }
 
+    private boolean isRed() {   return colorSensor.red() > colorSensor.blue();  }
+
+    public boolean isPastTime(double maxTime) {
+        if(clock.time() > maxTime) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public void stopDriving() {
+        M_drivePowerR = STOP;
+        M_drivePowerL = STOP;
         M_driveFR.setPower(STOP);
         M_driveFL.setPower(STOP);
         M_driveBR.setPower(STOP);
@@ -283,7 +481,7 @@ public class Auton extends LinearOpMode {
     }
 
     public int[] setDriveTarget(double inches) {
-        final double INCHES_TO_TICKS = 200.0d;
+        final double INCHES_TO_TICKS = 1100.0d / 12.0d;
         DcMotor[] motors = {M_driveFR, M_driveFL, M_driveBR, M_driveBR};
         int[] targets = new int[2];
         targets[0] = (int)(motors[0].getCurrentPosition() + inches * INCHES_TO_TICKS);
@@ -291,11 +489,13 @@ public class Auton extends LinearOpMode {
         return targets;
     }
 
+    // 12 goes 14.5
+
     public boolean driveForward() {
         DcMotor[] motors = {M_driveFR, M_driveFL, M_driveBR, M_driveBR};
         double[] PIDValue = new double[2];
         double[] accumError = new double[2];
-        double kP = 0.003d;
+        double kP = 0.002d;
         double kI;
         double[] actualPIDValue = new double[2];
         double thresholdPower = 0.1d;
@@ -303,28 +503,38 @@ public class Auton extends LinearOpMode {
         for (int i = 0; i < 2; i++) {
             int error = motorTargetsDrive[i] - motors[i].getCurrentPosition();
             PIDValue[i] = kP * error;
-            //accumError[i] += error;
+            accumError[i] += error;
             actualPIDValue[i] = kP * error;
             if (Math.abs(actualPIDValue[i]) > thresholdPower) {
                 /*motors[i].setPower(Range.clip(actualPIDValue[i], -1.0d, 1.0d));
                 motors[i + 2].setPower(Range.clip(actualPIDValue[i], -1.0d, 1.0d));*/
-                drivePowers[i] = Range.clip(actualPIDValue[i], -1.0d, 1.0d);
+                if(i == 0) {
+                    M_drivePowerR = Range.clip(actualPIDValue[i], -1.0d, 1.0d);
+                } else {
+                    M_drivePowerL = Range.clip(actualPIDValue[i], -1.0d, 1.0d);
+                }
+                //drivePowers[i] = Range.clip(actualPIDValue[i], -1.0d, 1.0d);
             } else {
                 /*motors[i].setPower(0.0d);
                 motors[i + 2].setPower(0.0d);*/
-                drivePowers[i] = 0.0d;
+                if(i == 0) {
+                    M_drivePowerR = STOP;
+                } else {
+                    M_drivePowerL = STOP;
+                }
+                //drivePowers[i] = 0.0d;
             }
         }
-        for(int i = 0; i < 2; i++) {
-            if(Math.abs(drivePowers[i]) > thresholdPower) {
-                return false;
-            }
+        if(Math.abs((M_driveFR.getCurrentPosition() + M_driveBR.getCurrentPosition()) / 2.0d - motorTargetsDrive[0]) > 30) {
+            return false;
+        } else if(Math.abs((M_driveFL.getCurrentPosition() + M_driveBL.getCurrentPosition()) / 2.0d - motorTargetsDrive[1]) > 30) {
+            return false;
         }
         return true;
     }
 
     public int[] setTurnTarget(double degrees) {
-        final double DEGREES_TO_TICKS = 12.2d;
+        final double DEGREES_TO_TICKS = 1160.0d / 90.0d;
         DcMotor[] motors = {M_driveFR, M_driveFL, M_driveBR, M_driveBR};
         int[] targets = new int[2];
         //targets[0] = (int)((motors[0].getCurrentPosition() + motors[2].getCurrentPosition()) / 2 - degrees * DEGREES_TO_TICKS);
@@ -334,36 +544,45 @@ public class Auton extends LinearOpMode {
         return targets;
     }
 
-
     public boolean turnRight() {
         DcMotor[] motors = {M_driveFR, M_driveFL, M_driveBR, M_driveBR};
         double[] PIDValue = new double[2];
         double[] accumError = new double[2];
-        double kP = 0.003d;
+        double kP = 0.002d;
         double kI;
         double actualPIDValue[] = new double[2];
         double thresholdPower = 0.1d;
 
         for (int i = 0; i < 2; i++) {
             //int error = (int)(motorTargetsTurn[i] - (motors[i].getCurrentPosition() - motors[i + 2].getCurrentPosition()) / 2);
-            int error = (int)(motorTargetsTurn[i] - motors[i].getCurrentPosition());
+            int error = motorTargetsTurn[i] - motors[i].getCurrentPosition();
             PIDValue[i] = kP * error;
-            //accumError[i] += error;
+            accumError[i] += error;
             actualPIDValue[i] = kP * error;
             if (Math.abs(actualPIDValue[i]) > 0.05) {
                 /*motors[i].setPower(Range.clip(actualPIDValue[i], -1.0d, 1.0d));
                 motors[i + 2].setPower(Range.clip(actualPIDValue[i], -1.0d, 1.0d));*/
-                drivePowers[i] = Range.clip(actualPIDValue[i], -1.0d, 1.0d);
+                if(i == 0) {
+                    M_drivePowerR = Range.clip(actualPIDValue[i], -1.0d, 1.0d);
+                } else {
+                    M_drivePowerL = Range.clip(actualPIDValue[i], -1.0d, 1.0d);
+                }
+                //drivePowers[i] = Range.clip(actualPIDValue[i], -1.0d, 1.0d);
             } else {
                 /*motors[i].setPower(0.0d);
                 motors[i + 2].setPower(0.0d);*/
-                drivePowers[i] = 0.0d;
+                if(i == 0) {
+                    M_drivePowerR = STOP;
+                } else {
+                    M_drivePowerL = STOP;
+                }
+                //drivePowers[i] = 0.0d;
             }
         }
-        for(int i = 0; i < 2; i++) {
-            if(Math.abs(drivePowers[i]) > 0.05) {
-                return false;
-            }
+        if(Math.abs((M_driveFR.getCurrentPosition() + M_driveBR.getCurrentPosition()) / 2.0d - motorTargetsTurn[0]) > 30) {
+            return false;
+        } else if(Math.abs((M_driveFL.getCurrentPosition() + M_driveBL.getCurrentPosition()) / 2.0d - motorTargetsTurn[1]) > 30) {
+            return false;
         }
         return true;
     }
@@ -384,60 +603,5 @@ public class Auton extends LinearOpMode {
             this.target = target;
         }
     }
-
-    private class DriveThreadRight implements Runnable {
-
-         float  kP = 0.0f,
-                kI = 0.0f,
-                kD = 0.0f;
-         float  maxPower = 1.0f,
-                minPower = -1.0f,
-                minPIDPower = 0.2f;
-         int    acceptableError = 50;  // in encoder ticks
-         float  target;           // in inches
-         boolean isMoving = true,
-                isFineTune = false;
-         double  timer = 0.0f,   // in milliseconds
-                fineTuneTimer = 0.0f,
-                currDt = 0.0f;
-         float   currError = 0.0f,   // in encoder ticks
-                prevError = 0.0f,   // in encoder ticks
-                errorRate = 0.0f,   // in encoder ticks
-                accumError = 0.0f;  // in encoder ticks
-         float   PIDValue = 0.0f,
-                power = 0.0f;
-
-         final int PULSE_PER_REV = 1120; // encoder ticks per revolution
-         final double GEAR_RATIO = RIGHT_GEAR_RATIO,
-                        OBJECT_CIRCUMFERENCE = RIGHT_WHEEL_CIRCUMFERENCE; // in inches
-         ElapsedTime clock;
-
-        @Override
-        public void run() {
-            clock.reset();
-            clock.startTime();
-            try {
-                while(isMoving) {
-                    currDt = clock.time() / 1000.0d;
-                    clock.reset();
-                    prevError = currError;
-                    currError = target - distanceTravelledR;
-                    accumError += currError;
-                    errorRate = (prevError - currError) / (float)currDt;
-                    PIDValue = kP * currError + kI * accumError + kD * errorRate;
-                    PIDValue = Range.clip(PIDValue, -maxPower, maxPower);
-                    driveRPower = PIDValue;
-                    if(currError < acceptableError) {
-                        power = 0.0f;
-                        isMoving = false;
-                    }
-                    Thread.sleep(10);
-                    // add in fine tune mode later
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-    }*/
+    */
 }

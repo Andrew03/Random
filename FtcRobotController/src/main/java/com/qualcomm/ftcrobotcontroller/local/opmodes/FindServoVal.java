@@ -5,6 +5,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+// button start Servo.Min
+// button end 0.635d
+
+
 /**
  * Created by Andrew on 12/9/2015.
  */

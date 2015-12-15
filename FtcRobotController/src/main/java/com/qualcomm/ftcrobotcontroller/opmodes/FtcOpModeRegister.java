@@ -33,12 +33,25 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.ftcrobotcontroller.local.opmodes.Auton;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.FindServoVal;
+import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonFar;
+import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonFarDelay;
+import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonNear;
+import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonNearDelay;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.TeleOp;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.Test;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.TestAuton;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
-
+// far is 2 robot away
+// straight 24
+//turn 45 right
+//straight 24
+// turn right 145
+// straight...
+//excess
+// 45 riht
+//20 straight
+// 90 right
 /**
  * Register Op Modes
  */
@@ -63,22 +76,24 @@ public class FtcOpModeRegister implements OpModeRegister {
     manager.register("NullOp", NullOp.class);
 
     //manager.register("MatrixK9TeleOp", MatrixK9TeleOp.class);
-    manager.register("K9TeleOp", K9TeleOp.class);
-    manager.register("K9Line", K9Line.class);
-    manager.register ("PushBotAuto", PushBotAuto.class);
-    manager.register ("PushBotManual", PushBotManual.class);
+    //manager.register("K9TeleOp", K9TeleOp.class);
+    //manager.register("K9Line", K9Line.class);
+    //manager.register ("PushBotAuto", PushBotAuto.class);
+    //manager.register ("PushBotManual", PushBotManual.class);
     manager.register("TestOPMode", Test.class);
     manager.register("TeleOp", TeleOp.class);
     manager.register("Auton", Auton.class);
     manager.register("FindServoVals", FindServoVal.class);
     manager.register("TestAuton", TestAuton.class);
-
-
+    manager.register("Red Auton Near", RedAutonNear.class);
+    manager.register("Red Auton Near Delayed", RedAutonNearDelay.class);
+    manager.register("Red Auton Far", RedAutonFar.class);
+    manager.register("Red Auton Far Delayed", RedAutonFarDelay.class);
 
     /*
      * Uncomment any of the following lines if you want to register an op mode.
      */
-    manager.register("MR Gyro Test", MRGyroTest.class);
+    //manager.register("MR Gyro Test", MRGyroTest.class);
 
     //manager.register("AdafruitRGBExample", AdafruitRGBExample.class);
     //manager.register("ColorSensorDriver", ColorSensorDriver.class);

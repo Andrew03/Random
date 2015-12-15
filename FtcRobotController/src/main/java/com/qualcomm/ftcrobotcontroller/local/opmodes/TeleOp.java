@@ -189,20 +189,16 @@ public class TeleOp extends OpMode {
     public void loop() {
         ///////////////////////////////////////// Controller 1 controls ///////////////////////////////////////////////
         // driving control block
-        if(gamepad1.right_trigger > 0.0d) {
-            M_drivePowerR = gamepad1.right_trigger;
-            M_drivePowerL = gamepad1.right_trigger;
-        } else if(gamepad1.left_trigger > 0.0d) {
-            M_drivePowerR = -gamepad1.left_trigger;
-            M_drivePowerL = -gamepad1.left_trigger;
+        M_drivePowerR = convertStick(-gamepad1.right_stick_y);
+        M_drivePowerL = convertStick(-gamepad1.left_stick_y);
+
+        // pickup control block
+        if (gamepad1.right_bumper) {
+            M_pickupPower = PICKUP_POWER;
+        } else if (gamepad1.left_bumper) {
+            M_pickupPower = -PICKUP_POWER;
         } else {
-            M_drivePowerR = STOP;
-            M_drivePowerL = STOP;
-        }
-        if(gamepad1.b) {
-            M_drivePowerR *= -1.0d;
-        } else if(gamepad1.x) {
-            M_drivePowerL *= -1.0d;
+            M_pickupPower = STOP;
         }
 
         // basket control block
@@ -233,9 +229,9 @@ public class TeleOp extends OpMode {
         }
 
         // selecting player 1 mode
-        if(gamepad1.right_stick_y > 0.5d) {
+        if(gamepad1.x) {
             p1Mode = P1Mode.P1;
-        } else if(gamepad1.left_stick_y > 0.5d) {
+        } else if(gamepad1.b) {
             p1Mode = P1Mode.P2;
         }
 
@@ -256,9 +252,9 @@ public class TeleOp extends OpMode {
         }
 
         // toggle basket control mode
-        if(gamepad2.right_stick_y > 0.5d) {
+        if(Math.abs(gamepad2.right_stick_y) > 0.3d) {
             basketMode = BasketMode.MANUAL;
-        } else if(gamepad2.left_stick_y > 0.5d) {
+        } else if(Math.abs(gamepad2.left_stick_y) > 0.3d) {
             basketMode = BasketMode.AUTO;
         }
 
@@ -306,14 +302,6 @@ public class TeleOp extends OpMode {
         switch (p1Mode) {
             //////////////////////////////// P1 mode commands ////////////////////////////////////////////
             case P1:
-                // pickup control block
-                if (gamepad1.right_bumper) {
-                    M_pickupPower = PICKUP_POWER;
-                } else if (gamepad1.left_bumper) {
-                    M_pickupPower = -PICKUP_POWER;
-                } else {
-                    M_pickupPower = STOP;
-                }
 
                 // basket release control block
                 if(gamepad1.y) {
@@ -339,9 +327,9 @@ public class TeleOp extends OpMode {
             //////////////////////////////// P2 mode commands ////////////////////////////////////////////
             case P2:
                 // lift control block
-                if(gamepad1.right_bumper) {
+                if(gamepad1.right_trigger > 0.0d) {
                     M_liftPower = LIFT_POWER_SLOW;
-                } else if(gamepad1.left_bumper) {
+                } else if(gamepad1.left_trigger > 0.0d) {
                     M_liftPower = -LIFT_POWER_SLOW;
                 }
                 // basket release control block
@@ -380,7 +368,8 @@ public class TeleOp extends OpMode {
         S_basketTilt.setPosition(S_basketTiltPos);
 
         telemetry.addData("Text", "*** Robot Data***");
-        telemetry.addData("Control mode", basketMode);
+        telemetry.addData("Basket mode", basketMode);
+        telemetry.addData("Player mode:", p1Mode);
 
     }
 
