@@ -37,6 +37,7 @@ import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonFar;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonFarDelay;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonNear;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonNearDelay;
+import com.qualcomm.ftcrobotcontroller.local.opmodes.ScrubTest;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.TeleOp;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.Test;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.TestAuton;
@@ -89,7 +90,7 @@ public class FtcOpModeRegister implements OpModeRegister {
     manager.register("Red Auton Near Delayed", RedAutonNearDelay.class);
     manager.register("Red Auton Far", RedAutonFar.class);
     manager.register("Red Auton Far Delayed", RedAutonFarDelay.class);
-
+    manager.register("4 Wheel Test", ScrubTest.class);
     /*
      * Uncomment any of the following lines if you want to register an op mode.
      */
