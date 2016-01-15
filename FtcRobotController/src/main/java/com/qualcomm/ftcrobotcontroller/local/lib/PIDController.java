@@ -29,27 +29,51 @@ public class PIDController {
     private double conversionFactor;
     private DcMotor[] motors;
 
-    // loop this
-    private double power = (Math.abs(error) < slowDownStart) ? kFast * error : kSlow * (tickOffset + error);
-    /*if(Math.abs(error) < threshold) {
-        power = 0.0d;
-        break;
-    }*/
     void run(double target) {
         final int TICKS_PER_REVOLUTION   = 1120;
         final double K_FAST              = 1 / (slowDownStart * TICKS_PER_REVOLUTION);
         final double K_SLOW              = (powerMin * slowDownStart) / (fineTuneStart * fineTuneStart * TICKS_PER_REVOLUTION);
         final double TICK_OFFSET         = (fineTuneStart * fineTuneStart * TICKS_PER_REVOLUTION) / slowDownStart;
-
-        double targetInTicks            = target * conversionFactor;
-        double currVal                  = 0;
-        double error                    = 0;
+        boolean isSymmetrical = (motors.length % 2 == 0);
+        int sides;
+        if(isSymmetrical) {
+            sides = 1;
+        } else {
+            sides = 2;
+        }
+        int[] currVal       = new int[sides];
+        int[] error         = new int[sides];
+        int[] targetInTicks = new int[sides];
+        double[] power      = new double[sides];
+        for(int i = 0; i < sides; i++) {
+            int currPos = 0;
+            for(int j = 0; j < motors.length / sides; j++) {
+                currPos += motors[j].getCurrentPosition();
+            }
+            targetInTicks[i] = (int)(target * conversionFactor) + (int)(currPos / (motors.length / sides));
+        }
         boolean hasReachedDestination = false;
 
         while(!hasReachedDestination) {
-            for(int i = 0; i < Math.ceil(motors.length / 2); i++) {
-
+            for(int i = 0; i < sides; i++) {
+                int sidePos = 0;
+                for(int j = 0; j < motors.length / sides; j++) {
+                    sidePos += motors[i * j].getCurrentPosition();
+                }
+                currVal[i] = sidePos / (int)(sidePos / (motors.length / sides));
+                error[i] = targetInTicks[i] - currVal[i];
+                power[i] = (Math.abs(error[i]) > fineTuneStart) ? K_FAST * error[i] : K_SLOW * (TICK_OFFSET + error[i]);
+                for(int j = 0; j < motors.length / sides; j++) {
+                    motors[i * j].setPower(power[i]);
+                }
+                hasReachedDestination = (Math.abs(error[i]) < threshold);
             }
+        }
+        stop();
+    }
+    void stop() {
+        for(DcMotor motor : motors) {
+            motor.setPower(0.0d);
         }
     }
 }
