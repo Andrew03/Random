@@ -3,6 +3,7 @@ package com.qualcomm.ftcrobotcontroller.local.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -11,13 +12,33 @@ import com.qualcomm.robotcore.util.Range;
 
 public class ScrubTest extends OpMode {
 
-    DcMotor M_driveBR, M_driveBL, M_driveFR, M_driveFL;
+    DcMotor M_driveBR,
+            M_driveBL,
+            M_driveFR,
+            M_driveFL,
+            M_liftR,
+            M_liftL,
+            M_pickup,
+            M_basket;
+    Servo   buttonPusher,
+            climberDropSwing,
+            climberDropDeposit,
+            climberKnockdown;
+
     final double C_STICK_TOP_THRESHOLD = 0.90d;
     final double STOP = 0.0d;
-    final double    DRIVE_POWER = 0.8d,
-                    TURN_POWER  = 0.8d;
-    final double TURN_THRESHOLD = 3.0d;
-    private double convertStick(float controllerValue) {   return Range.clip(Math.sin(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD), -1.0d, 1.0d); }
+    final double    DRIVE_POWER     = 0.8d,
+                    TURN_POWER      = 0.8d,
+                    PICKUP_POWER    = 0.8d;
+    final double TURN_THRESHOLD     = 3.0d;
+    double      M_drivePowerR       = STOP,
+                M_drivePowerL       = STOP,
+                M_liftPowerR        = STOP,
+                M_liftPowerL        = STOP,
+                M_pickupPower       = STOP,
+                M_basketPower       = STOP;
+
+    private double convertStick(float controllerValue) {   return Math.sin(Range.clip(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD, -Math.PI / 2, Math.PI / 2)); }
     private Quadrant findQuadrant(Gamepad gamepad, String stick) {
         if(stick.toLowerCase().equals("left")) {
             if (gamepad.left_stick_y != 0.0d && gamepad.left_stick_x != 0.0d) {
@@ -79,7 +100,7 @@ public class ScrubTest extends OpMode {
             M_drivePowerL = -PIDValue;
         }
     }
-    double M_drivePowerR = STOP, M_drivePowerL = STOP;
+
     double targetAngleL, targetAngleR;
     enum DriveMode{
         TANK,
@@ -95,14 +116,34 @@ public class ScrubTest extends OpMode {
         NA
     }
 
-    @Override
-    public void init() {
-        M_driveFR = hardwareMap.dcMotor.get("M_driveFR");
-        M_driveFL = hardwareMap.dcMotor.get("M_driveFL");
-        M_driveBR = hardwareMap.dcMotor.get("M_driveBR");
-        M_driveBL = hardwareMap.dcMotor.get("M_driveBL");
+    void grabMotors() {
+        M_driveFR   = hardwareMap.dcMotor.get("M_driveFR");
+        M_driveFL   = hardwareMap.dcMotor.get("M_driveFL");
+        M_driveBR   = hardwareMap.dcMotor.get("M_driveBR");
+        M_driveBL   = hardwareMap.dcMotor.get("M_driveBL");
+        M_liftR     = hardwareMap.dcMotor.get("M_liftR");
+        M_liftL     = hardwareMap.dcMotor.get("M_liftL");
+        M_pickup    = hardwareMap.dcMotor.get("M_pickup");
+        M_basket    = hardwareMap.dcMotor.get("M_basket");
+    }
+    void configureMotors() {
         M_driveFR.setDirection(DcMotor.Direction.REVERSE);
         M_driveBR.setDirection(DcMotor.Direction.REVERSE);
+        M_liftR.setDirection(DcMotor.Direction.REVERSE);
+    }
+    void grabServos() {
+
+    }
+    void grabSensors() {
+
+    }
+
+    @Override
+    public void init() {
+        grabMotors();
+        configureMotors();
+        grabServos();
+        grabSensors();
     }
 
     @Override
@@ -216,13 +257,39 @@ public class ScrubTest extends OpMode {
                 break;
         }*/
 
+        // drive base control block
         M_drivePowerR = convertStick(-gamepad1.right_stick_y);
         M_drivePowerL = convertStick(-gamepad1.left_stick_y);
+        // pickup control block
+        if(gamepad1.right_bumper) {
+            M_pickupPower = PICKUP_POWER;
+        } else if(gamepad1.left_bumper) {
+            M_pickupPower = -PICKUP_POWER;
+        } else {
+            M_pickupPower = STOP;
+        }
+        // basket control block
+        if(gamepad1.right_trigger > 0.0d) {
+            M_basketPower = gamepad1.right_trigger;
+        } else if(gamepad1.left_trigger > 0.0d) {
+            M_basketPower = -gamepad1.left_trigger;
+        } else {
+            M_basketPower = STOP;
+        }
+
+        // lift control block
+        M_liftPowerR = convertStick(-gamepad2.right_stick_y);
+        M_liftPowerL = convertStick(-gamepad2.left_stick_y);
+
 
         M_driveFR.setPower(M_drivePowerR);
         M_driveFL.setPower(M_drivePowerL);
         M_driveBR.setPower(M_drivePowerR);
         M_driveBL.setPower(M_drivePowerL);
+        M_liftR.setPower(M_liftPowerR);
+        M_liftL.setPower(M_liftPowerL);
+        M_pickup.setPower(M_pickupPower);
+        M_basket.setPower(M_basketPower);
     }
 
     @Override
@@ -231,5 +298,9 @@ public class ScrubTest extends OpMode {
         M_driveFL.setPower(STOP);
         M_driveBR.setPower(STOP);
         M_driveBL.setPower(STOP);
+        M_liftR.setPower(STOP);
+        M_liftL.setPower(STOP);
+        M_pickup.setPower(STOP);
+        M_basket.setPower(STOP);
     }
 }
