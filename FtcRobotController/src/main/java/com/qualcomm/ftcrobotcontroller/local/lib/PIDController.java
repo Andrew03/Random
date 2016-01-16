@@ -6,41 +6,62 @@ import com.qualcomm.robotcore.hardware.DcMotor;
  * Created by Andrew on 1/7/2016.
  */
 public class PIDController {
-    public PIDController(int wheelDiameter, int gearRatio, int threshold, double slowDownStart, double fineTuneStart, double powerMin, double conversionFactor, DcMotor ... motors) {
+    public PIDController(int wheelDiameter, int gearRatio, int threshold, double slowDownStart, double fineTuneStart, double powerMin, TypePID typePID, DcMotor ... motors) {
         this.wheelDiameter = wheelDiameter;
         this.gearRatio = gearRatio;
         this.threshold = threshold;
         this.slowDownStart = slowDownStart;
         this.fineTuneStart = fineTuneStart;
         this.powerMin = powerMin;
-        this.conversionFactor = conversionFactor;
+        this.typePID = typePID;
         this.motors = new DcMotor[motors.length];
         for(int i = 0; i < this.motors.length; i++) {
             this.motors[i] = motors[i];
         }
-    }
-    // variables that change depending on part of robot
-    private int wheelDiameter;
-    private int gearRatio;
-    private int threshold;
-    private double slowDownStart;
-    private double fineTuneStart;
-    private double powerMin;
-    private double conversionFactor;
-    private DcMotor[] motors;
-
-    void run(double target) {
-        final int TICKS_PER_REVOLUTION   = 1120;
-        final double K_FAST              = 1 / (slowDownStart * TICKS_PER_REVOLUTION);
-        final double K_SLOW              = (powerMin * slowDownStart) / (fineTuneStart * fineTuneStart * TICKS_PER_REVOLUTION);
-        final double TICK_OFFSET         = (fineTuneStart * fineTuneStart * TICKS_PER_REVOLUTION) / slowDownStart;
         boolean isSymmetrical = (motors.length % 2 == 0);
-        int sides;
         if(isSymmetrical) {
             sides = 1;
         } else {
             sides = 2;
         }
+        targets             = new int[sides];
+    }
+    public enum TypePID {
+        DRIVE,
+        TURN,
+        LIFT
+    } TypePID typePID;
+    // variables that change depending on part of robot
+    private int wheelDiameter;
+    private int gearRatio;
+    private int threshold;
+    private int sides;
+    private double slowDownStart;
+    private double fineTuneStart;
+    private double powerMin;
+    private double conversionFactor;
+    private DcMotor[] motors;
+    private int[] targets;
+
+    void run(double target) {
+
+        final int TICKS_PER_REVOLUTION   = 1120;
+        final double K_FAST              = 1 / (slowDownStart * TICKS_PER_REVOLUTION);
+        final double K_SLOW              = (1 / slowDownStart - powerMin / fineTuneStart) / TICKS_PER_REVOLUTION;
+        final double TICK_OFFSET         = powerMin * slowDownStart * fineTuneStart * TICKS_PER_REVOLUTION / (fineTuneStart - powerMin * slowDownStart);
+
+        switch (typePID) {
+            case DRIVE:
+                conversionFactor = TICKS_PER_REVOLUTION / (wheelDiameter * Math.PI * gearRatio);
+                break;
+            case TURN:
+                break;
+            case LIFT:
+                break;
+            default:
+                break;
+        }
+
         int[] currVal       = new int[sides];
         int[] error         = new int[sides];
         int[] targetInTicks = new int[sides];
