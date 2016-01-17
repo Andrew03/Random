@@ -7,7 +7,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
  */
 public class PIDController {
     public PIDController(int wheelDiameter, int gearRatio, int threshold, double slowDownStart, double fineTuneStart, double powerMin, TypePID typePID, DcMotor ... motors) {
-        this.wheelDiameter = wheelDiameter;
+        this(wheelDiameter, 0.0d, gearRatio, threshold, slowDownStart, fineTuneStart, powerMin, typePID, motors);
+    }
+    public PIDController(int wheel1Diameter, double wheel2Diameter, int gearRatio, int threshold, double slowDownStart, double fineTuneStart, double powerMin, TypePID typePID, DcMotor ... motors) {
+        this.wheelDiameter = wheel1Diameter;
+        this.turnDiameter = wheel2Diameter;
         this.gearRatio = gearRatio;
         this.threshold = threshold;
         this.slowDownStart = slowDownStart;
@@ -24,7 +28,7 @@ public class PIDController {
         } else {
             sides = 2;
         }
-        targets             = new int[sides];
+        targets = new int[sides];
     }
     public enum TypePID {
         DRIVE,
@@ -42,8 +46,19 @@ public class PIDController {
     private double conversionFactor;
     private DcMotor[] motors;
     private int[] targets;
+    private double turnDiameter;
 
-    void run(double target) {
+    public void setTargets(double target) {
+        for(int i = 0; i < sides; i++) {
+            int sidePos = 0;
+            for (int j = 0; j < motors.length / sides; j++) {
+                sidePos += motors[i * 2 + j].getCurrentPosition();
+            }
+            targets[i] = (int) (sidePos / sides + target * conversionFactor);
+        }
+    }
+
+    public boolean run() {
 
         final int TICKS_PER_REVOLUTION   = 1120;
         final double K_FAST              = 1 / (slowDownStart * TICKS_PER_REVOLUTION);
@@ -55,6 +70,7 @@ public class PIDController {
                 conversionFactor = TICKS_PER_REVOLUTION / (wheelDiameter * Math.PI * gearRatio);
                 break;
             case TURN:
+                conversionFactor = turnDiameter * TICKS_PER_REVOLUTION / (wheelDiameter * gearRatio * 360);
                 break;
             case LIFT:
                 break;
@@ -64,33 +80,39 @@ public class PIDController {
 
         int[] currVal       = new int[sides];
         int[] error         = new int[sides];
-        int[] targetInTicks = new int[sides];
         double[] power      = new double[sides];
-        for(int i = 0; i < sides; i++) {
-            int currPos = 0;
-            for(int j = 0; j < motors.length / sides; j++) {
-                currPos += motors[j].getCurrentPosition();
-            }
-            targetInTicks[i] = (int)(target * conversionFactor) + (int)(currPos / (motors.length / sides));
-        }
         boolean hasReachedDestination = false;
 
-        while(!hasReachedDestination) {
+        if(!hasReachedDestination) {
             for(int i = 0; i < sides; i++) {
-                int sidePos = 0;
-                for(int j = 0; j < motors.length / sides; j++) {
-                    sidePos += motors[i * j].getCurrentPosition();
-                }
-                currVal[i] = sidePos / (int)(sidePos / (motors.length / sides));
-                error[i] = targetInTicks[i] - currVal[i];
+                currVal[i] = getCurrentPosition(i);
+                error[i] = targets[i] - currVal[i];
                 power[i] = (Math.abs(error[i]) > fineTuneStart) ? K_FAST * error[i] : K_SLOW * (TICK_OFFSET + error[i]);
                 for(int j = 0; j < motors.length / sides; j++) {
-                    motors[i * j].setPower(power[i]);
+                    motors[i * 2 + j].setPower(power[i]);
                 }
                 hasReachedDestination = (Math.abs(error[i]) < threshold);
             }
         }
         stop();
+        return hasReachedDestination;
+    }
+
+    int[] getCurrentPosition() {
+        int[] temp = new int[sides];
+        for(int i = 0; i < sides; i++) {
+            int sidePos = 0;
+            for (int j = 0; j < motors.length / sides; j++) {
+                sidePos += motors[i * 2 + j].getCurrentPosition();
+            }
+            temp[i] = sidePos / (int) (sidePos / (motors.length / sides));
+        }
+        return temp;
+    }
+
+    int getCurrentPosition(int side) {
+        int[] temp = getCurrentPosition();
+        return temp[side];
     }
     void stop() {
         for(DcMotor motor : motors) {
