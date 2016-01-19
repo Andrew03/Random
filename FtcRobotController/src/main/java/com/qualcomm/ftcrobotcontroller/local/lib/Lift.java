@@ -19,7 +19,7 @@ public class Lift extends MotorComponent {
         setWheelDiameter(wheelDiameter);
         setGearRatio(gearRatio);
         setDirection(direction);
-        liftPID = new PIDController(wheelDiameter, gearRatio, threshold, slowDownStart, fineTuneStart, powerMin, conversionFactor, motors);
+        //liftPID = new PIDController(wheelDiameter, gearRatio, threshold, slowDownStart, fineTuneStart, powerMin, conversionFactor, motors);
     }
     private PIDController liftPID;
 

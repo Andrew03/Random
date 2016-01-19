@@ -16,7 +16,7 @@ public class DriveBase extends MotorComponent {
     }
     public DriveBase(int wheelDiameter, int gearRatio, Direction direction, int threshold, double slowDownStart, double fineTuneStart, double powerMin, double conversionFactor, DcMotor ... motors) {
         this(wheelDiameter, gearRatio, direction);
-        driveBasePID = new PIDController(wheelDiameter, gearRatio, threshold, slowDownStart, fineTuneStart, powerMin, conversionFactor, motors);
+        //driveBasePID = new PIDController(wheelDiameter, gearRatio, threshold, slowDownStart, fineTuneStart, powerMin, conversionFactor, motors);
     }
     double angleConversionFactor;
     double orientation;

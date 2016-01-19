@@ -98,7 +98,7 @@ public class PIDController {
         return hasReachedDestination;
     }
 
-    int[] getCurrentPosition() {
+    public int[] getCurrentPosition() {
         int[] temp = new int[sides];
         for(int i = 0; i < sides; i++) {
             int sidePos = 0;

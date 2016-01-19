@@ -2,6 +2,7 @@ package com.qualcomm.ftcrobotcontroller.local.opmodes;
 
 import com.qualcomm.ftcrobotcontroller.local.lib.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -14,14 +15,18 @@ public class DebrisAuton extends LinearOpMode {
             M_driveBL,
             M_driveFR,
             M_driveFL,
-            M_liftR,
-            M_liftL,
-            M_pickup,
-            M_basket;
-    Servo buttonPusher,
+            //M_liftR,
+            //M_liftL,
+            M_pickup;
+            //M_basket;
+    Servo   buttonPusher,
             climberDropSwing,
             climberDropDeposit,
-            climberKnockdown;
+            climberKnockdownR,
+            climberKnockdownL,
+            colorSensorGround;
+    ColorSensor whiteTapeSensor,
+                beaconSensor;
 
     final double    STOP = 0.0d;
     final double    DRIVE_POWER     = 0.8d,
@@ -50,15 +55,15 @@ public class DebrisAuton extends LinearOpMode {
         M_driveFL   = hardwareMap.dcMotor.get("M_driveFL");
         M_driveBR   = hardwareMap.dcMotor.get("M_driveBR");
         M_driveBL   = hardwareMap.dcMotor.get("M_driveBL");
-        M_liftR     = hardwareMap.dcMotor.get("M_liftR");
-        M_liftL     = hardwareMap.dcMotor.get("M_liftL");
+        //M_liftR     = hardwareMap.dcMotor.get("M_liftR");
+        //M_liftL     = hardwareMap.dcMotor.get("M_liftL");
         M_pickup    = hardwareMap.dcMotor.get("M_pickup");
-        M_basket    = hardwareMap.dcMotor.get("M_basket");
+        //M_basket    = hardwareMap.dcMotor.get("M_basket");
     }
     void configureMotors() {
         M_driveFR.setDirection(DcMotor.Direction.REVERSE);
         M_driveBR.setDirection(DcMotor.Direction.REVERSE);
-        M_liftR.setDirection(DcMotor.Direction.REVERSE);
+        //M_liftR.setDirection(DcMotor.Direction.REVERSE);
     }
     void grabServos() {
 
@@ -156,17 +161,49 @@ public class DebrisAuton extends LinearOpMode {
                     if(finished) {
                         hasBeenSet = false;
                         counter++;
-                        tempPosition[0] = (int)((M_driveFR.getCurrentPosition() + M_driveBR.getCurrentPosition()) / 2.0d);
-                        tempPosition[1] = (int)((M_driveFL.getCurrentPosition() + M_driveBL.getCurrentPosition()) / 2.0d);
+                        tempPosition = drivePID.getCurrentPosition();
                         while(waitingForClick()) {
                             sleep(100);
                         }
                     }
                     break;
                 case 5:
-
+                    if(whiteTapeSensor.red() > 0.8 && whiteTapeSensor.blue() > 0.8d && whiteTapeSensor.green() > 0.8d) {
+                        stopRobot();
+                        counter++;
+                        while(waitingForClick()) {
+                            sleep(100);
+                        }
+                    } else {
+                        M_driveFR.setPower(DRIVE_POWER_MIN);
+                        M_driveBR.setPower(DRIVE_POWER_MIN);
+                        M_driveFL.setPower(DRIVE_POWER_MIN);
+                        M_driveBL.setPower(DRIVE_POWER_MIN);
+                    }
+                    break;
+                case 6:
+                    // do some things to make sure robot gets colors sensor
+                    counter++;
+                    break;
+                case 7:
+                    // extend color sensor, make center,
+                    counter++;
+                    break;
+                case 8:
+                    break;
+                default:
+                    break;
             }
+            M_pickup.setPower(M_pickupPower);
+
             sleep(100);
         }
+    }
+    void stopRobot() {
+        M_driveFR.setPower(STOP);
+        M_driveBR.setPower(STOP);
+        M_driveFL.setPower(STOP);
+        M_driveBL.setPower(STOP);
+
     }
 }

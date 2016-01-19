@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.ftcrobotcontroller.local.opmodes.Auton;
+import com.qualcomm.ftcrobotcontroller.local.opmodes.DebrisTeleop;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.FindServoVal;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonFar;
 import com.qualcomm.ftcrobotcontroller.local.opmodes.RedAutonFarDelay;
@@ -90,7 +91,7 @@ public class FtcOpModeRegister implements OpModeRegister {
     manager.register("Red Auton Near Delayed", RedAutonNearDelay.class);
     manager.register("Red Auton Far", RedAutonFar.class);
     manager.register("Red Auton Far Delayed", RedAutonFarDelay.class);
-    manager.register("4 Wheel Test", ScrubTest.class);
+    manager.register("Debris Teleop", DebrisTeleop.class);
     /*
      * Uncomment any of the following lines if you want to register an op mode.
      */
