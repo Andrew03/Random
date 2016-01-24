@@ -20,16 +20,23 @@ public class ScrubTest extends OpMode {
             M_liftL,
             M_pickup,
             M_basket;
-    Servo   buttonPusher,
-            climberDropSwing,
-            climberDropDeposit,
-            climberKnockdown;
+    Servo   S_buttonPusher,
+            S_climberDrop,
+            S_climberKnockdownR,
+            S_climberKnockdownL;
 
     final double C_STICK_TOP_THRESHOLD = 0.90d;
     final double STOP = 0.0d;
     final double    DRIVE_POWER     = 0.8d,
                     TURN_POWER      = 0.8d,
                     PICKUP_POWER    = 0.8d;
+    final double    S_CLIMBER_DROP_START_POS = 0.0d,
+                    S_CLIMBER_KNOCKDOWN_R_START_POS = 0.79d,
+                    S_CLIMBER_KNOCKDOWN_L_START_POS = Servo.MAX_POSITION;
+
+    final double    S_CLIMBER_DROP_END_POS   = 0.0d,
+                    S_CLIMBER_KNOCKDOWN_R_END_POS   = Servo.MIN_POSITION,
+                    S_CLIMBER_KNOCKDOWN_L_END_POS   = 0.58d;
     final double TURN_THRESHOLD     = 3.0d;
     double      M_drivePowerR       = STOP,
                 M_drivePowerL       = STOP,
@@ -37,6 +44,9 @@ public class ScrubTest extends OpMode {
                 M_liftPowerL        = STOP,
                 M_pickupPower       = STOP,
                 M_basketPower       = STOP;
+    double      S_climberDropPos    = Servo.MAX_POSITION,
+                S_climberKnockdownRPos  = S_CLIMBER_KNOCKDOWN_R_START_POS,
+                S_climberKnockdownLPos  = S_CLIMBER_KNOCKDOWN_L_START_POS;
 
     private double convertStick(float controllerValue) {   return Math.sin(Range.clip(controllerValue * Math.PI / 2 / C_STICK_TOP_THRESHOLD, -Math.PI / 2, Math.PI / 2)); }
     private Quadrant findQuadrant(Gamepad gamepad, String stick) {
@@ -122,8 +132,8 @@ public class ScrubTest extends OpMode {
         M_driveBR   = hardwareMap.dcMotor.get("M_driveBR");
         M_driveBL   = hardwareMap.dcMotor.get("M_driveBL");
         M_liftR     = hardwareMap.dcMotor.get("M_liftR");
-        M_liftL     = hardwareMap.dcMotor.get("M_liftL");
-        M_pickup    = hardwareMap.dcMotor.get("M_pickup");
+        //M_liftL     = hardwareMap.dcMotor.get("M_liftL");
+        //M_pickup    = hardwareMap.dcMotor.get("M_pickup");
         M_basket    = hardwareMap.dcMotor.get("M_basket");
     }
     void configureMotors() {
@@ -132,8 +142,11 @@ public class ScrubTest extends OpMode {
         M_liftR.setDirection(DcMotor.Direction.REVERSE);
     }
     void grabServos() {
-
+        S_climberDrop = hardwareMap.servo.get("S_climberDrop");
+        S_climberKnockdownR = hardwareMap.servo.get("S_climberKnockdownR");
+        S_climberKnockdownL = hardwareMap.servo.get("S_climberKnockdownL");
     }
+
     void grabSensors() {
 
     }
@@ -281,15 +294,45 @@ public class ScrubTest extends OpMode {
         M_liftPowerR = convertStick(-gamepad2.right_stick_y);
         M_liftPowerL = convertStick(-gamepad2.left_stick_y);
 
+        if(gamepad2.a && S_climberKnockdownRPos < 0.98d) {
+            S_climberKnockdownRPos += 0.01d;
+        } else if(gamepad2.b && S_climberKnockdownRPos > 0.02d) {
+            S_climberKnockdownRPos -= 0.01d;
+        }
+        if(gamepad2.x && S_climberKnockdownLPos < 0.98d) {
+            S_climberKnockdownLPos += 0.01d;
+        } else if(gamepad2.y && S_climberKnockdownLPos > 0.02d) {
+            S_climberKnockdownLPos -= 0.01d;
+        }
+
+        if(gamepad1.a && S_climberDropPos < 0.98d) {
+            S_climberDropPos += 0.01d;
+        } else if(gamepad1.b && S_climberDropPos > 0.02d) {
+            S_climberDropPos -= 0.01d;
+        }
+
 
         M_driveFR.setPower(M_drivePowerR);
         M_driveFL.setPower(M_drivePowerL);
         M_driveBR.setPower(M_drivePowerR);
         M_driveBL.setPower(M_drivePowerL);
         M_liftR.setPower(M_liftPowerR);
-        M_liftL.setPower(M_liftPowerL);
-        M_pickup.setPower(M_pickupPower);
+        //M_liftL.setPower(M_liftPowerL);
+        //M_pickup.setPower(M_pickupPower);
         M_basket.setPower(M_basketPower);
+
+        S_climberDrop.setPosition(S_climberDropPos);
+        S_climberKnockdownR.setPosition(S_climberKnockdownRPos);
+        S_climberKnockdownL.setPosition(S_climberKnockdownLPos);
+
+        telemetry.addData("Text", "*** Robot Data***");
+        telemetry.addData("Climber Drop Pos", S_climberDropPos);
+        telemetry.addData("ClimberKnockdownR Pos", S_climberKnockdownRPos);
+        telemetry.addData("ClimberKnockdownL Pos", S_climberKnockdownLPos);
+        telemetry.addData("RF POS", M_driveFR.getCurrentPosition());
+        telemetry.addData("LF POS", M_driveFL.getCurrentPosition());
+        telemetry.addData("RB POS", M_driveBR.getCurrentPosition());
+        telemetry.addData("LB POS", M_driveBL.getCurrentPosition());
     }
 
     @Override
@@ -299,8 +342,8 @@ public class ScrubTest extends OpMode {
         M_driveBR.setPower(STOP);
         M_driveBL.setPower(STOP);
         M_liftR.setPower(STOP);
-        M_liftL.setPower(STOP);
-        M_pickup.setPower(STOP);
+        //M_liftL.setPower(STOP);
+        //M_pickup.setPower(STOP);
         M_basket.setPower(STOP);
     }
 }

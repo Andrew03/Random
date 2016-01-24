@@ -14,17 +14,16 @@ public class DebrisAuton extends LinearOpMode {
     DcMotor M_driveBR,
             M_driveBL,
             M_driveFR,
-            M_driveFL,
-            //M_liftR,
-            //M_liftL,
-            M_pickup;
-            //M_basket;
-    Servo   buttonPusher,
-            climberDropSwing,
-            climberDropDeposit,
-            climberKnockdownR,
-            climberKnockdownL,
-            colorSensorGround;
+            M_driveFL;
+            /*M_liftR     = null,
+            M_liftL     = null,
+            M_pickup    = null,
+            M_basket    = null;*/
+    /*Servo   buttonPusher        = null,
+            climberDrop         = null,
+            climberKnockdownR   = null,
+            climberKnockdownL   = null,
+            colorSensorGround   = null;*/
     ColorSensor whiteTapeSensor,
                 beaconSensor;
 
@@ -49,6 +48,7 @@ public class DebrisAuton extends LinearOpMode {
                     M_liftPowerL            = STOP,
                     M_pickupPower           = STOP,
                     M_basketPower           = STOP;
+    double[]        drivePowers;
 
     void grabMotors() {
         M_driveFR   = hardwareMap.dcMotor.get("M_driveFR");
@@ -57,7 +57,7 @@ public class DebrisAuton extends LinearOpMode {
         M_driveBL   = hardwareMap.dcMotor.get("M_driveBL");
         //M_liftR     = hardwareMap.dcMotor.get("M_liftR");
         //M_liftL     = hardwareMap.dcMotor.get("M_liftL");
-        M_pickup    = hardwareMap.dcMotor.get("M_pickup");
+        //M_pickup    = hardwareMap.dcMotor.get("M_pickup");
         //M_basket    = hardwareMap.dcMotor.get("M_basket");
     }
     void configureMotors() {
@@ -72,6 +72,10 @@ public class DebrisAuton extends LinearOpMode {
 
     }
 
+    void setPID() {
+        drivePID = new PIDController(DRIVE_WHEEL_DIAMETER, DRIVE_GEAR_RATIO, DRIVE_THRESHOLD, DRIVE_SLOW_DOWN_START, DRIVE_FINE_TUNE_START, DRIVE_POWER_MIN, PIDController.TypePID.DRIVE, drivePowers, M_driveFR, M_driveBR, M_driveFL, M_driveBL);
+        turnPID = new PIDController(DRIVE_WHEEL_DIAMETER, TURN_DIAMETER, DRIVE_GEAR_RATIO, TURN_THRESHOLD, TURN_SLOW_DOWN_START, TURN_FINE_TUNE_START, TURN_POWER_MIN, PIDController.TypePID.TURN, drivePowers, M_driveFR, M_driveBR, M_driveFL, M_driveBL);
+    }
     private boolean waitingForClick() {
         telemetry.addData("Waiting for click", "waiting");
         if(gamepad1.a) {
@@ -80,20 +84,23 @@ public class DebrisAuton extends LinearOpMode {
         return true;
     }
 
-    PIDController drivePID = new PIDController(DRIVE_WHEEL_DIAMETER, DRIVE_GEAR_RATIO, DRIVE_THRESHOLD, DRIVE_SLOW_DOWN_START, DRIVE_FINE_TUNE_START, DRIVE_POWER_MIN, PIDController.TypePID.DRIVE, M_driveFR, M_driveBR, M_driveFL, M_driveBL);
-    PIDController turnPID  = new PIDController(DRIVE_WHEEL_DIAMETER, TURN_DIAMETER, DRIVE_GEAR_RATIO, TURN_THRESHOLD, TURN_SLOW_DOWN_START, TURN_FINE_TUNE_START, TURN_POWER_MIN, PIDController.TypePID.TURN, M_driveFR, M_driveBR, M_driveFL, M_driveBL);
+    PIDController drivePID;
+    PIDController turnPID;
+
     @Override
     public void runOpMode() throws InterruptedException {
+        drivePowers = new double[2];
         grabMotors();
         configureMotors();
         grabServos();
         grabSensors();
+        setPID();
 
         int counter = 0;
         int tempPosition[] = new int[2];
         boolean hasBeenSet = false;
-        boolean finished = false;
 
+        waitForStart();
         while(opModeIsActive()) {
             switch (counter) {
                 case 0:
@@ -101,11 +108,15 @@ public class DebrisAuton extends LinearOpMode {
                         drivePID.setTargets(51.0d);
                         hasBeenSet = true;
                     }
-                    finished = drivePID.run();
-                    if(finished) {
+                    drivePowers = drivePID.run();
+                    if(drivePID.hasReachedDestination()) {
                         hasBeenSet = false;
                         counter++;
                         while(waitingForClick()) {
+                            telemetry.addData("Drive R Pos: ", drivePID.getCurrentPosition()[0]);
+                            telemetry.addData("Drive L Pos: ", drivePID.getCurrentPosition()[1]);
+                            telemetry.addData("target R: ", drivePID.getTargets()[0]);
+                            telemetry.addData("target L: ", drivePID.getTargets()[1]);
                             sleep(100);
                         }
                     }
@@ -115,8 +126,8 @@ public class DebrisAuton extends LinearOpMode {
                         turnPID.setTargets(90.0d);
                         hasBeenSet = true;
                     }
-                    finished = turnPID.run();
-                    if(finished) {
+                    drivePowers = turnPID.run();
+                    if(turnPID.hasReachedDestination()) {
                         hasBeenSet = false;
                         counter++;
                         while(waitingForClick()) {
@@ -124,7 +135,7 @@ public class DebrisAuton extends LinearOpMode {
                         }
                     }
                     break;
-                case 2:
+                /*case 2:
                     if(!hasBeenSet) {
                         drivePID.setTargets(48.0d);
                         hasBeenSet = true;
@@ -191,11 +202,17 @@ public class DebrisAuton extends LinearOpMode {
                     break;
                 case 8:
                     break;
+                    */
                 default:
                     break;
             }
-            M_pickup.setPower(M_pickupPower);
-
+            //M_pickup.setPower(M_pickupPower);
+            M_driveFR.setPower(drivePowers[0]);
+            M_driveBR.setPower(drivePowers[0]);
+            M_driveFL.setPower(drivePowers[1]);
+            M_driveBL.setPower(drivePowers[1]);
+            telemetry.addData("Drive R Pos: ", drivePID.getCurrentPosition()[0]);
+            telemetry.addData("Drive L Pos: ", drivePID.getCurrentPosition()[1]);
             sleep(100);
         }
     }
