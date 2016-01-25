@@ -66,7 +66,7 @@ public class PIDController {
 
     public void setTargets(double target) {
         for(int i = 0; i < sides; i++) {
-            targets[i] = (int) (getCurrentPosition()[i] / sides + target * conversionFactor);
+            targets[i] = (int) (getCurrentPosition()[i] + target * conversionFactor);
         }
     }
 
@@ -87,11 +87,20 @@ public class PIDController {
             for(int i = 0; i < sides; i++) {
                 currVal[i] = getCurrentPosition()[i];
                 error[i] = targets[i] - currVal[i];
-                power[i] = (Math.abs(error[i]) > fineTuneStart) ? K_FAST * error[i] : K_SLOW * (TICK_OFFSET + error[i]);
+                if(Math.abs(error[i]) < threshold) {
+                    power[i] = 0.0d;
+                } else {
+                    // try using - fineTuneStart on K_SLOW, maybe need /2
+                    power[i] = (Math.abs(error[i]) > fineTuneStart * TICKS_PER_REVOLUTION) ? K_FAST * Math.abs(error[i]) : K_SLOW * (TICK_OFFSET + Math.abs(error[i]));
+                }
+                if(error[i] < 0.0d) {
+                    power[i] *= -1;
+                }
                 drivePowers[i] = Range.clip(power[i], -1.0d, 1.0d);
             }
         } else {
-            stop();
+            drivePowers[0] = 0.0d;
+            drivePowers[1] = 0.0d;
         }
         return drivePowers;
     }

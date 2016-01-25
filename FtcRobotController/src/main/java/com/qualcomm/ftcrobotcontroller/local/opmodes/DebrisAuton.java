@@ -11,37 +11,55 @@ import com.qualcomm.robotcore.hardware.Servo;
  */
 public class DebrisAuton extends LinearOpMode {
 
-    DcMotor M_driveBR,
-            M_driveBL,
-            M_driveFR,
-            M_driveFL;
-            /*M_liftR     = null,
+    // motor declarations
+    DcMotor M_driveBR   = null,
+            M_driveBL   = null,
+            M_driveFR   = null,
+            M_driveFL   = null,
+            M_liftR     = null,
             M_liftL     = null,
             M_pickup    = null,
-            M_basket    = null;*/
-    /*Servo   buttonPusher        = null,
-            climberDrop         = null,
-            climberKnockdownR   = null,
-            climberKnockdownL   = null,
-            colorSensorGround   = null;*/
+            M_basket    = null;
+
+    // servo declarations
+    Servo   //S_buttonPusher        = null,
+            S_climberDrop         = null,
+            S_climberKnockdownR   = null,
+            S_climberKnockdownL   = null;
+            //S_colorSensorGround   = null;
     ColorSensor whiteTapeSensor,
                 beaconSensor;
 
-    final double    STOP = 0.0d;
-    final double    DRIVE_POWER     = 0.8d,
+    // constant powers
+    final double    STOP            = 0.0d,
+                    DRIVE_POWER     = 0.8d,
                     TURN_POWER      = 0.8d,
                     PICKUP_POWER    = 0.8d;
+
+    // starting servo positions
+    final double    S_CLIMBER_DROP_START_POS        = 0.0d,
+                    S_CLIMBER_KNOCKDOWN_R_START_POS = 0.0d,
+                    S_CLIMBER_KNOCKDOWN_L_START_POS = 0.0d;
+
+    // ending servo positions
+    final double    S_CLIMBER_DROP_END_POS        = 0.0d,
+                    S_CLIMBER_KNOCKDOWN_R_END_POS = 0.0d,
+                    S_CLIMBER_KNOCKDOWN_L_END_POS = 0.0d;
+
+    // drive and turn PID constants
     final int       DRIVE_WHEEL_DIAMETER    = 4,
                     DRIVE_GEAR_RATIO        = 1,
                     DRIVE_THRESHOLD         = 20,
-                    TURN_THRESHOLD          = 20;
-    final double    DRIVE_SLOW_DOWN_START   = 4.0d,
-                    DRIVE_FINE_TUNE_START   = 1.0d,
-                    DRIVE_POWER_MIN         = 0.2d,
-                    TURN_SLOW_DOWN_START    = 3.0d,
-                    TURN_FINE_TUNE_START    = 1.0d,
-                    TURN_POWER_MIN          = 0.20d,
-                    TURN_DIAMETER           = 3.0d;
+                    TURN_THRESHOLD          = 80;
+    final double    DRIVE_SLOW_DOWN_START   = 1.5d,
+                    DRIVE_FINE_TUNE_START   = 0.5d,
+                    DRIVE_POWER_MIN         = 0.25d,
+                    TURN_SLOW_DOWN_START    = 1.5d,
+                    TURN_FINE_TUNE_START    = 0.5d,
+                    TURN_POWER_MIN          = 0.25d,
+                    TURN_DIAMETER           = Math.sqrt(Math.pow(9.0d, 2.0d) + Math.pow(16.5d, 2.0d));
+
+    // drive powers
     double          M_drivePowerR           = STOP,
                     M_drivePowerL           = STOP,
                     M_liftPowerR            = STOP,
@@ -50,23 +68,30 @@ public class DebrisAuton extends LinearOpMode {
                     M_basketPower           = STOP;
     double[]        drivePowers;
 
+    // servo positions
+    double          S_climberDropPos        = S_CLIMBER_DROP_START_POS,
+                    S_climberKnockdownRPos  = S_CLIMBER_KNOCKDOWN_R_START_POS,
+                    S_climberKnockdownLPos  = S_CLIMBER_KNOCKDOWN_L_START_POS;
+
     void grabMotors() {
         M_driveFR   = hardwareMap.dcMotor.get("M_driveFR");
         M_driveFL   = hardwareMap.dcMotor.get("M_driveFL");
         M_driveBR   = hardwareMap.dcMotor.get("M_driveBR");
         M_driveBL   = hardwareMap.dcMotor.get("M_driveBL");
-        //M_liftR     = hardwareMap.dcMotor.get("M_liftR");
-        //M_liftL     = hardwareMap.dcMotor.get("M_liftL");
-        //M_pickup    = hardwareMap.dcMotor.get("M_pickup");
-        //M_basket    = hardwareMap.dcMotor.get("M_basket");
+        M_liftR     = hardwareMap.dcMotor.get("M_liftR");
+        M_liftL     = hardwareMap.dcMotor.get("M_liftL");
+        M_pickup    = hardwareMap.dcMotor.get("M_pickup");
+        M_basket    = hardwareMap.dcMotor.get("M_basket");
     }
     void configureMotors() {
         M_driveFR.setDirection(DcMotor.Direction.REVERSE);
         M_driveBR.setDirection(DcMotor.Direction.REVERSE);
-        //M_liftR.setDirection(DcMotor.Direction.REVERSE);
+        M_liftR.setDirection(DcMotor.Direction.REVERSE);
     }
     void grabServos() {
-
+        S_climberDrop         = hardwareMap.servo.get("S_climberDrop");
+        S_climberKnockdownR   = hardwareMap.servo.get("S_climberKnockdownR");
+        S_climberKnockdownL   = hardwareMap.servo.get("S_climberKnockdownL");
     }
     void grabSensors() {
 
@@ -105,7 +130,8 @@ public class DebrisAuton extends LinearOpMode {
             switch (counter) {
                 case 0:
                     if(!hasBeenSet) {
-                        drivePID.setTargets(51.0d);
+                        // go 51
+                        drivePID.setTargets(12.0d);
                         hasBeenSet = true;
                     }
                     drivePowers = drivePID.run();
@@ -113,6 +139,7 @@ public class DebrisAuton extends LinearOpMode {
                         hasBeenSet = false;
                         counter++;
                         while(waitingForClick()) {
+                            stopRobot();
                             telemetry.addData("Drive R Pos: ", drivePID.getCurrentPosition()[0]);
                             telemetry.addData("Drive L Pos: ", drivePID.getCurrentPosition()[1]);
                             telemetry.addData("target R: ", drivePID.getTargets()[0]);
@@ -211,8 +238,13 @@ public class DebrisAuton extends LinearOpMode {
             M_driveBR.setPower(drivePowers[0]);
             M_driveFL.setPower(drivePowers[1]);
             M_driveBL.setPower(drivePowers[1]);
+            M_pickup.setPower(-PICKUP_POWER);
             telemetry.addData("Drive R Pos: ", drivePID.getCurrentPosition()[0]);
             telemetry.addData("Drive L Pos: ", drivePID.getCurrentPosition()[1]);
+            telemetry.addData("Drive R Target: ", drivePID.getTargets()[0]);
+            telemetry.addData("Drive L Target: ", drivePID.getTargets()[1]);
+            telemetry.addData("Drive R Power: ", drivePowers[0]);
+            telemetry.addData("Drive L Power: ", drivePowers[1]);
             sleep(100);
         }
     }
